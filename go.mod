@@ -3,6 +3,9 @@ module github.com/CrazyThursdayV50/pkgo
 go 1.22.5
 
 require (
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/sashabaranov/go-openai v1.29.1 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
