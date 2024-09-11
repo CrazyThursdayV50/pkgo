@@ -10,7 +10,7 @@ type Config struct {
 	CallerSkip        int
 }
 
-func DefaultLogger() *Config {
+func DefaultConfig() *Config {
 	return &Config{
 		Mode:              "Development",
 		Development:       true,
