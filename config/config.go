@@ -20,11 +20,11 @@ func parseConfig[Config any](v *viper.Viper) (*Config, error) {
 }
 
 // Load config file from given path
-func loadConfig(path, name string) (*viper.Viper, error) {
+func loadConfig(path, name, ext string) (*viper.Viper, error) {
 	v := viper.New()
 	v.AddConfigPath(path)
 	v.SetConfigName(name)
-	v.SetConfigType("yml")
+	v.SetConfigType(ext)
 	v.AutomaticEnv()
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -37,8 +37,8 @@ func loadConfig(path, name string) (*viper.Viper, error) {
 }
 
 // Get config
-func GetConfig[Config any](path, name string) (*Config, error) {
-	cfgFile, err := loadConfig(path, name)
+func GetConfig[Config any](path, name, ext string) (*Config, error) {
+	cfgFile, err := loadConfig(path, name, ext)
 	if err != nil {
 		return nil, err
 	}
