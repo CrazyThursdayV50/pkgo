@@ -1,7 +1,7 @@
 package log
 
 type Logger interface {
-	InitLogger()
+	Init()
 	Debug(args ...interface{})
 	Debugf(template string, args ...interface{})
 	Info(args ...interface{})

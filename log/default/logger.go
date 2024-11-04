@@ -3,9 +3,12 @@ package defaultlogger
 import (
 	"os"
 
+	"github.com/CrazyThursdayV50/pkgo/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+var _ log.Logger = (*apiLogger)(nil)
 
 type apiLogger struct {
 	cfg         *Config
