@@ -1,7 +1,7 @@
 package gorm
 
 import (
-	"github.com/opentracing/opentracing-go"
+	"github.com/CrazyThursdayV50/pkgo/trace"
 	"github.com/opentracing/opentracing-go/log"
 	"gorm.io/gorm"
 )
@@ -13,7 +13,7 @@ type (
 
 func Sql(db *gorm.DB) string { return db.ToSQL(func(tx *gorm.DB) *gorm.DB { return tx }) }
 
-func traceInterceptor(tracer opentracing.Tracer) func(string, Handler) Handler {
+func traceInterceptor(tracer trace.Tracer) func(string, Handler) Handler {
 	return func(op string, next Handler) Handler {
 		return func(db *gorm.DB) {
 			if next != nil {
@@ -25,7 +25,7 @@ func traceInterceptor(tracer opentracing.Tracer) func(string, Handler) Handler {
 				return
 			}
 
-			span, _ := opentracing.StartSpanFromContextWithTracer(ctx, tracer, "gorm")
+			span, _ := tracer.NewSpanWithName(ctx, "gorm")
 			defer span.Finish()
 
 			var fields = []log.Field{

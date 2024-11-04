@@ -2,25 +2,25 @@ package gorm
 
 import (
 	"context"
-	"log"
 	"time"
 
+	"github.com/CrazyThursdayV50/pkgo/log"
+	gormlogger "github.com/CrazyThursdayV50/pkgo/log/gorm"
+	"github.com/CrazyThursdayV50/pkgo/trace"
 	sql "github.com/go-sql-driver/mysql"
-	"github.com/opentracing/opentracing-go"
 	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	g "gorm.io/gorm"
 )
 
 type DB struct {
-	*gorm.DB
+	*g.DB
 }
 
-func (db *DB) Db(ctx context.Context) *gorm.DB {
+func (db *DB) Db(ctx context.Context) *g.DB {
 	return db.DB.WithContext(ctx)
 }
 
-func (db *DB) Tx(ctx context.Context, f func() bool) (*gorm.DB, func()) {
+func (db *DB) Tx(ctx context.Context, f func() bool) (*g.DB, func()) {
 	tx := db.DB.Begin().WithContext(ctx)
 	fn := func() {
 		if f() {
@@ -33,8 +33,9 @@ func (db *DB) Tx(ctx context.Context, f func() bool) (*gorm.DB, func()) {
 	return tx, fn
 }
 
-func NewDB(logger logger.Interface, tracer opentracing.Tracer, cfg *Config) *DB {
-	cfg.Gorm.Logger = logger
+func NewDB(logger log.Logger, tracer trace.Tracer, cfg *Config) *DB {
+	gl := gormlogger.New(logger, &cfg.Logger)
+	cfg.Gorm.Logger = gl
 	dsnConf, _ := sql.ParseDSN(cfg.DSN)
 	dialector := mysql.New(mysql.Config{
 		DSN:           cfg.DSN,
@@ -42,14 +43,14 @@ func NewDB(logger logger.Interface, tracer opentracing.Tracer, cfg *Config) *DB 
 		ServerVersion: cfg.ServerVersion,
 	})
 
-	db, err := gorm.Open(dialector, &cfg.Gorm)
+	db, err := g.Open(dialector, &cfg.Gorm)
 	if err != nil {
-		log.Fatalf("new gorm client failed: %v", err)
+		logger.Fatalf("new gorm client failed: %v", err)
 	}
 
 	inner, err := db.DB()
 	if err != nil {
-		log.Fatalf("get db failed: %v", err)
+		logger.Fatalf("get db failed: %v", err)
 	}
 
 	inner.SetMaxIdleConns(cfg.MaxIdleConn)
@@ -61,4 +62,4 @@ func NewDB(logger logger.Interface, tracer opentracing.Tracer, cfg *Config) *DB 
 	return &DB{db}
 }
 
-func DefaultFindInBatchesCallback(tx *gorm.DB, batch int) error { return tx.Error }
+func DefaultFindInBatchesCallback(tx *g.DB, batch int) error { return tx.Error }

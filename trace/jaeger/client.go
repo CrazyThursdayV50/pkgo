@@ -42,6 +42,8 @@ type Tracer struct {
 	t opentracing.Tracer
 }
 
+var _ trace.TracerCreator = (*Tracer)(nil)
+
 type tracer struct {
 	name string
 	t    opentracing.Tracer
