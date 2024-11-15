@@ -6,7 +6,7 @@ import (
 
 	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	"github.com/CrazyThursdayV50/pkgo/websocket/client/compressor"
+	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 	"go.uber.org/zap"
 
 	"github.com/gorilla/websocket"
@@ -101,11 +101,24 @@ func (c *Client) read(handler MessageHandler) error {
 		return err
 	}
 
+	if c.c != nil {
+		data, err = c.c.Uncompress(data)
+		if err != nil {
+			return err
+		}
+	}
+
 	message := handler(c.ctx, c.l, data, func(err error) {
 		c.l.Error("handle message failed", zap.Any("message", data), zap.Error(err))
 	})
 
 	if message != nil {
+		if c.c != nil {
+			message, err = c.c.Compress(message)
+			if err != nil {
+				return err
+			}
+		}
 		return c.send(message)
 	}
 

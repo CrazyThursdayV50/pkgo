@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"io"
 
-	"github.com/CrazyThursdayV50/pkgo/websocket/client/compressor"
+	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 )
 
 type gzipCompressor struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
-	"github.com/CrazyThursdayV50/pkgo/websocket/client/compressor"
+	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 	"github.com/gorilla/websocket"
 )
 

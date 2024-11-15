@@ -4,6 +4,7 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/log"
 	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
 	"github.com/CrazyThursdayV50/pkgo/trace"
+	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 )
 
 type Server struct {
@@ -13,6 +14,7 @@ type Server struct {
 	writeBufferSize int
 	done            chan struct{}
 	handler         func(messageType int, data []byte, err error) (int, []byte, error)
+	c               compressor.Compressor
 }
 
 func New(opts ...Option) *Server {
