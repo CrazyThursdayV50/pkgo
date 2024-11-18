@@ -56,8 +56,14 @@ func TestWebsocket(t *testing.T) {
 		http.ListenAndServe(":18080", mux)
 	})
 
-	// ---------- client
+	goo.Goo(func() {
+		for {
+			wsserver.Broadcast(ctx, websocket.TextMessage, []byte("broadcast"))
+			time.Sleep(time.Second)
+		}
+	}, func(err error) { logger.Error(err) })
 
+	// ---------- client
 	wsclient := client.New(
 		client.WithURL("ws://localhost:18080/ws"),
 		client.WithContext(ctx), client.WithLogger(logger),
@@ -74,7 +80,7 @@ func TestWebsocket(t *testing.T) {
 					return
 				default:
 					conn.WriteMessage(websocket.TextMessage, []byte("ping"))
-					time.Sleep(time.Second * 3)
+					time.Sleep(time.Second * 10)
 				}
 			}
 		}),
