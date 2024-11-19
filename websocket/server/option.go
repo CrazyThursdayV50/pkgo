@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/CrazyThursdayV50/pkgo/trace"
 	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
@@ -39,7 +41,7 @@ func WithTracer(tracer trace.Tracer) Option {
 	}
 }
 
-func WithHandler(handler func(messageType int, data []byte, err error) (int, []byte, error)) Option {
+func WithHandler(handler func(ctx context.Context, messageType int, data []byte, err error) (int, []byte, error)) Option {
 	return func(s *Server) {
 		s.handler = handler
 	}

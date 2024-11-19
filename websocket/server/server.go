@@ -63,7 +63,7 @@ func (s *Server) compress(ctx context.Context, data []byte) ([]byte, error) {
 func (s *Server) handle(ctx context.Context, messageType int, data []byte, err error, cancel func()) (int, []byte, error) {
 	span, ctx := s.tracer.NewSpan(ctx)
 	defer span.Finish()
-	messageType, data, err = s.handler(messageType, data, err)
+	messageType, data, err = s.handler(ctx, messageType, data, err)
 	if err != nil {
 		span.LogFields(log.Event("handle"), log.Error(err))
 		cancel()
@@ -114,13 +114,18 @@ func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request
 	ctx, cancel := context.WithCancel(ctx)
 	c := s.newConn(conn, cancel)
 	s.conns.AddSoft(c.id, c)
-	goo.Go(func() {
+	goo.Goo(func() {
 		for {
 			err := s.runConn(ctx, c)
 			if err != nil {
 				return
 			}
 		}
+	}, func(err error) {
+		if err == nil {
+			return
+		}
+		s.logger.Errorf("serve websocket failed: %v", err)
 	})
 
 	goo.Go(func() {

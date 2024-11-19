@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	gmap "github.com/CrazyThursdayV50/gotils/pkg/builtin/api/map"
 	"github.com/CrazyThursdayV50/pkgo/log"
@@ -21,7 +23,7 @@ type Server struct {
 	logger          log.Logger
 	readBufferSize  int
 	writeBufferSize int
-	handler         func(messageType int, data []byte, err error) (int, []byte, error)
+	handler         func(ctx context.Context, messageType int, data []byte, err error) (int, []byte, error)
 	c               compressor.Compressor
 	connID          int64
 	conns           api.MapAPI[int64, *conn]

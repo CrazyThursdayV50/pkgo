@@ -32,7 +32,7 @@ func TestWebsocket(t *testing.T) {
 	wsserver := server.New(
 		server.WithLogger(logger),
 		server.WithTracer(tracer.NewTracer("WsServer")),
-		server.WithHandler(func(messageType int, data []byte, err error) (int, []byte, error) {
+		server.WithHandler(func(ctx context.Context, messageType int, data []byte, err error) (int, []byte, error) {
 			if err != nil {
 				logger.Errorf("receive error: %v", err)
 				return 0, nil, err
@@ -58,12 +58,12 @@ func TestWebsocket(t *testing.T) {
 		http.ListenAndServe(":18080", mux)
 	})
 
-	// goo.Goo(func() {
-	// 	for {
-	// 		wsserver.Broadcast(ctx, websocket.TextMessage, []byte("broadcast"))
-	// 		time.Sleep(time.Second)
-	// 	}
-	// }, func(err error) { logger.Error(err) })
+	goo.Goo(func() {
+		for {
+			wsserver.Broadcast(ctx, websocket.TextMessage, []byte("broadcast"))
+			time.Sleep(time.Second)
+		}
+	}, func(err error) { logger.Error(err) })
 
 	// ---------- client
 
