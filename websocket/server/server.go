@@ -113,7 +113,7 @@ func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request
 
 	ctx, cancel := context.WithCancel(ctx)
 	c := s.newConn(conn, cancel)
-	// s.conns.AddSoft(c.id, c)
+	s.conns.AddSoft(c.id, c)
 	goo.Go(func() {
 		for {
 			err := s.runConn(ctx, c)
