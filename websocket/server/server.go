@@ -72,48 +72,51 @@ func (s *Server) handle(ctx context.Context, messageType int, data []byte, err e
 	return messageType, data, err
 }
 
+func (s *Server) runConn(ctx context.Context, c *conn) error {
+	span, ctx := s.tracer.NewSpanWithName(ctx, "loop")
+	defer span.Finish()
+
+	messageType, data, err := c.recv(ctx, s.tracer)
+	if err != nil {
+		return err
+	}
+
+	data, err = s.uncompress(ctx, data)
+	if err != nil {
+		return err
+	}
+
+	messageType, data, err = s.handle(ctx, messageType, data, err, c.cancel)
+	if err != nil {
+		return err
+	}
+
+	if data == nil {
+		return nil
+	}
+
+	data, err = s.compress(ctx, data)
+	if err != nil {
+		return err
+	}
+
+	return c.send(ctx, s.tracer, messageType, data)
+}
+
 func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request, h http.Header) error {
 	var upgrader = websocket.Upgrader{ReadBufferSize: s.readBufferSize, WriteBufferSize: s.writeBufferSize}
 	conn, err := upgrader.Upgrade(w, r, h)
 	if err != nil {
+		s.logger.Errorf("upgrade failed: %v", err)
 		return err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	c := s.newConn(conn, cancel)
-	s.conns.AddSoft(c.id, c)
-
-	var run = func() error {
-		messageType, data, err := c.recv(ctx, s.tracer)
-		if err != nil {
-			return err
-		}
-
-		data, err = s.uncompress(ctx, data)
-		if err != nil {
-			return err
-		}
-
-		messageType, data, err = s.handle(ctx, messageType, data, err, cancel)
-		if err != nil {
-			return err
-		}
-
-		if data == nil {
-			return nil
-		}
-
-		data, err = s.compress(ctx, data)
-		if err != nil {
-			return err
-		}
-
-		return c.send(ctx, s.tracer, messageType, data)
-	}
-
+	// s.conns.AddSoft(c.id, c)
 	goo.Go(func() {
 		for {
-			err := run()
+			err := s.runConn(ctx, c)
 			if err != nil {
 				return
 			}
@@ -122,13 +125,9 @@ func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request
 
 	goo.Go(func() {
 		<-ctx.Done()
-		close(s.done)
-	})
-
-	goo.Go(func() {
-		<-s.done
 		conn.Close()
 		s.conns.Del(c.id)
+		s.logger.Warnf("conn %d closed", c.id)
 	})
 
 	return nil

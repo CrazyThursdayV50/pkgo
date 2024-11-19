@@ -74,7 +74,7 @@ func (c *Client) start() {
 			continue
 		}
 
-		c.l.Error("connect failed, try to reconnect", zap.Error(err))
+		c.l.Errorf("connect failed, try to reconnect: %v", zap.Error(err))
 		timer := time.NewTimer(time.Second * 5)
 		select {
 		case <-c.done:
@@ -91,7 +91,7 @@ func (c *Client) Send(data []byte) error {
 }
 
 func (c *Client) send(data []byte) error {
-	c.l.Debug("send", zap.ByteString("message", data))
+	c.l.Debugf("send: %v", zap.ByteString("message", data))
 	return c.conn.WriteMessage(websocket.TextMessage, data)
 }
 

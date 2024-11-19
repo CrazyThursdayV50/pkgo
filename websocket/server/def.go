@@ -21,17 +21,14 @@ type Server struct {
 	logger          log.Logger
 	readBufferSize  int
 	writeBufferSize int
-	done            chan struct{}
 	handler         func(messageType int, data []byte, err error) (int, []byte, error)
 	c               compressor.Compressor
 	connID          int64
-	// conns           cmap.ConcurrentMap[int64, *conn]
-	conns api.MapAPI[int64, *conn]
+	conns           api.MapAPI[int64, *conn]
 }
 
 func New(opts ...Option) *Server {
 	var s Server
-	s.done = make(chan struct{})
 	s.readBufferSize = defaultReadBufferSize
 	s.writeBufferSize = defaultWriteBufferSize
 	s.logger = defaultlogger.New(defaultlogger.DefaultConfig())

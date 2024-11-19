@@ -22,7 +22,9 @@ func TestWebsocket(t *testing.T) {
 	var logger = defaultlogger.New(defaultlogger.DefaultConfig())
 	logger.Init()
 
-	tracer, err := jaeger.New(ctx, jaeger.DefaultConfig(), logger)
+	jaegerCfg := jaeger.DefaultConfig()
+	jaegerCfg.LogSpans = false
+	tracer, err := jaeger.New(ctx, jaegerCfg, logger)
 	if err != nil {
 		t.Fatalf("logger failed: %v", err)
 	}
@@ -56,37 +58,47 @@ func TestWebsocket(t *testing.T) {
 		http.ListenAndServe(":18080", mux)
 	})
 
-	goo.Goo(func() {
-		for {
-			wsserver.Broadcast(ctx, websocket.TextMessage, []byte("broadcast"))
-			time.Sleep(time.Second)
-		}
-	}, func(err error) { logger.Error(err) })
+	// goo.Goo(func() {
+	// 	for {
+	// 		wsserver.Broadcast(ctx, websocket.TextMessage, []byte("broadcast"))
+	// 		time.Sleep(time.Second)
+	// 	}
+	// }, func(err error) { logger.Error(err) })
 
 	// ---------- client
-	wsclient := client.New(
-		client.WithURL("ws://localhost:18080/ws"),
-		client.WithContext(ctx), client.WithLogger(logger),
 
-		client.WithMessageHandler(func(ctx context.Context, l log.Logger, data []byte, f func(error)) []byte {
-			l.Infof("client receive: %s", data)
-			return nil
-		}),
+	var newClient = func() {
+		wsclient := client.New(
+			client.WithURL("ws://localhost:18080/ws"),
+			client.WithContext(ctx), client.WithLogger(logger),
 
-		client.WithPingLoop(func(done <-chan struct{}, conn *websocket.Conn) {
-			for {
-				select {
-				case <-done:
-					return
-				default:
-					conn.WriteMessage(websocket.TextMessage, []byte("ping"))
-					time.Sleep(time.Second * 10)
+			client.WithMessageHandler(func(ctx context.Context, l log.Logger, data []byte, f func(error)) []byte {
+				l.Infof("client receive: %s", data)
+				return nil
+			}),
+
+			client.WithPingLoop(func(done <-chan struct{}, conn *websocket.Conn) {
+				for {
+					select {
+					case <-done:
+						return
+					default:
+						conn.WriteMessage(websocket.TextMessage, []byte("ping"))
+						time.Sleep(time.Second * 1)
+					}
 				}
-			}
-		}),
-	)
+			}),
+		)
 
-	wsclient.Run()
+		wsclient.Run()
+		time.Sleep(time.Second * 3)
+		wsclient.Stop()
+	}
 
-	<-make(chan struct{})
+	// goo.Go(newClient)
+	// goo.Go(newClient)
+	newClient()
+	newClient()
+
+	time.Sleep(time.Second * 100)
 }
