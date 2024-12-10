@@ -42,10 +42,10 @@ func (l *apiLogger) getLoggerLevel(cfg *Config) zapcore.Level {
 func (l *apiLogger) Init() {
 	logLevel := l.getLoggerLevel(l.cfg)
 
-	logWriter := zapcore.AddSync(os.Stderr)
+	logWriter := zapcore.AddSync(os.Stdout)
 
 	var encoderCfg zapcore.EncoderConfig
-	if l.cfg.Mode == "Development" {
+	if l.cfg.Development {
 		encoderCfg = zap.NewDevelopmentEncoderConfig()
 	} else {
 		encoderCfg = zap.NewProductionEncoderConfig()
@@ -58,13 +58,14 @@ func (l *apiLogger) Init() {
 	encoderCfg.NameKey = "NAME"
 	encoderCfg.MessageKey = "MESSAGE"
 
-	if l.cfg.Encoding == "console" {
+	if l.cfg.Console {
 		encoder = zapcore.NewConsoleEncoder(encoderCfg)
 	} else {
 		encoder = zapcore.NewJSONEncoder(encoderCfg)
 	}
 
-	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+
 	core := zapcore.NewCore(encoder, logWriter, zap.NewAtomicLevelAt(logLevel))
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(l.cfg.CallerSkip))
 
