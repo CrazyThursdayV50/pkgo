@@ -48,7 +48,7 @@ func (c *Curve) GenSharedPoint(prvA, prvB []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	privateB, err := c.curve.NewPrivateKey(prvA)
+	privateB, err := c.curve.NewPrivateKey(prvB)
 	if err != nil {
 		return nil, err
 	}
