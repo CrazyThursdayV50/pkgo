@@ -57,14 +57,13 @@ func (l *apiLogger) Init() {
 	encoderCfg.TimeKey = "TIME"
 	encoderCfg.NameKey = "NAME"
 	encoderCfg.MessageKey = "MESSAGE"
+	encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 
 	if l.cfg.Console {
 		encoder = zapcore.NewConsoleEncoder(encoderCfg)
 	} else {
 		encoder = zapcore.NewJSONEncoder(encoderCfg)
 	}
-
-	encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 
 	core := zapcore.NewCore(encoder, logWriter, zap.NewAtomicLevelAt(logLevel))
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(l.cfg.CallerSkip))
