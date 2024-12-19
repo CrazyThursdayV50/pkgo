@@ -47,9 +47,9 @@ func (s *Monitor) Run(f func(context.Context)) {
 		s.logger.Errorf("exit panic: %v", err)
 	})
 
-	goo.Go(func() {
+	goo.Goo(func() {
 		f(s.ctx)
-	})
+	}, func(err error) { s.logger.Errorf("monitor panic: %v", err) })
 }
 
 func wrap(next, f func()) func() {

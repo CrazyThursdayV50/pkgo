@@ -4,9 +4,9 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/builtin/slice"
 )
 
-func Group[E any, K comparable, V any](sli []E, mapper func(E) (bool, K, V)) (m map[K][]V) {
-	slice.From(sli...).Iter(func(_ int, v E) (bool, error) {
-		ok, key, val := mapper(v)
+func Group[E any, K comparable, V any](sli []E, mapper func(int, E) (bool, K, V)) (m map[K][]V) {
+	slice.From(sli...).Iter(func(i int, v E) (bool, error) {
+		ok, key, val := mapper(i, v)
 		if !ok {
 			return true, nil
 		}

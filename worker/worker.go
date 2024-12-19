@@ -24,15 +24,17 @@ type Worker[J any] struct {
 func (w *Worker[J]) run(ctx context.Context) {
 	switch w.graceful {
 	case true:
-		goo.Go(func() {
+		goo.Goo(func() {
 			w.trigger.Iter(func(_ int, element J) (bool, error) {
 				w.do(element)
 				return true, nil
 			})
+		}, func(err error) {
+			w.logger.Errorf("worker panic: %v", err)
 		})
 
 	default:
-		goo.Go(func() {
+		goo.Goo(func() {
 			w.trigger.Iter(func(_ int, element J) (bool, error) {
 				select {
 				case <-ctx.Done():
@@ -43,6 +45,8 @@ func (w *Worker[J]) run(ctx context.Context) {
 					return true, nil
 				}
 			})
+		}, func(err error) {
+			w.logger.Errorf("worker panic: %v", err)
 		})
 	}
 }
