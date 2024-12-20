@@ -2,7 +2,6 @@ package ethereum
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"github.com/CrazyThursdayV50/pkgo/crypto"
 	"github.com/CrazyThursdayV50/pkgo/crypto/ecdsa"
@@ -18,7 +17,6 @@ func GenAddressFromPubKey(pubkey []byte) (string, error) {
 
 func GenAddressFromPrvKey(prvkey []byte) (string, error) {
 	pubkey := ecdsa.GenPubKey(prvkey)
-	fmt.Printf("pubkey: %x\n", pubkey)
 	addr, err := GenAddressFromPubKey(pubkey)
 	if err != nil {
 		return "", err
