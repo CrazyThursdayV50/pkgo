@@ -5,8 +5,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
-	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
+	"github.com/CrazyThursdayV50/pkgo/builtin"
+	"github.com/CrazyThursdayV50/pkgo/builtin/wrap"
 )
 
 type (
@@ -60,7 +60,7 @@ func (c *ChanR[E]) RecvTimeout(recv time.Duration) {
 	c.recvTimeout = recv
 }
 
-func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
+func (c *ChanR[E]) Receive() (builtin.UnWrapper[E], bool) {
 	if c == nil {
 		return wrap.Nil[E](), false
 	}

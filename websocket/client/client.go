@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 	"go.uber.org/zap"

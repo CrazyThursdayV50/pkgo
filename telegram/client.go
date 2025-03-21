@@ -3,7 +3,7 @@ package telegram
 import (
 	"context"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/trace"
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"

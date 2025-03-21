@@ -27,7 +27,7 @@ func (c *Curve) RandomEcdh() (*ecdh.PrivateKey, error) {
 }
 
 func (c *Curve) GenPubKey(prvkey []byte) ([]byte, error) {
-	var buf = bytes.NewReader(prvkey)
+	buf := bytes.NewReader(prvkey)
 	private, err := c.curve.GenerateKey(buf)
 	if err != nil {
 		return nil, err

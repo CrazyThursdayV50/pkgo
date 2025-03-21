@@ -5,20 +5,20 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/gorilla/websocket"
 	"github.com/opentracing/opentracing-go/log"
 )
 
 func (s *Server) Broadcast(ctx context.Context, messageType int, data []byte) {
-	s.conns.IterFully(func(k int64, v *conn) error {
+	s.conns.Iter(func(k int64, v *conn) (bool,error) {
 		select {
 		case <-ctx.Done():
-			return nil
+			return true,nil
 
 		default:
 			_ = v.send(ctx, s.tracer, messageType, data)
-			return nil
+			return true,nil
 		}
 	})
 }
@@ -29,7 +29,7 @@ func (s *Server) newConn(c *websocket.Conn, cancel func()) *conn {
 }
 
 func (s *Server) uncompress(ctx context.Context, data []byte) ([]byte, error) {
-	span, ctx := s.tracer.NewSpan(ctx)
+	span, _ := s.tracer.NewSpan(ctx)
 	defer span.Finish()
 
 	if s.c == nil {
@@ -45,7 +45,7 @@ func (s *Server) uncompress(ctx context.Context, data []byte) ([]byte, error) {
 }
 
 func (s *Server) compress(ctx context.Context, data []byte) ([]byte, error) {
-	span, ctx := s.tracer.NewSpan(ctx)
+	span, _ := s.tracer.NewSpan(ctx)
 	defer span.Finish()
 
 	if s.c == nil {

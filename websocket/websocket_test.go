@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
 	"github.com/CrazyThursdayV50/pkgo/trace/jaeger"

@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
-	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
-	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
+	"github.com/CrazyThursdayV50/pkgo/builtin"
+	"github.com/CrazyThursdayV50/pkgo/builtin/wrap"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 )
 
 type ChanRW[E any] struct {
@@ -61,7 +61,7 @@ func (c *ChanRW[E]) Close() {
 	goo.Go(c.closeSendChan)
 }
 
-func (c *ChanRW[E]) Receive() (wrapper.UnWrapper[E], bool) {
+func (c *ChanRW[E]) Receive() (builtin.UnWrapper[E], bool) {
 	if c == nil {
 		return wrap.Nil[E](), false
 	}

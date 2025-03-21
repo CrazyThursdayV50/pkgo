@@ -3,7 +3,6 @@ module github.com/CrazyThursdayV50/pkgo
 go 1.22.5
 
 require (
-	github.com/CrazyThursdayV50/gotils v1.0.34
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/go-resty/resty/v2 v2.14.0

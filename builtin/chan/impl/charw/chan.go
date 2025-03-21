@@ -4,11 +4,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
-	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
+	"github.com/CrazyThursdayV50/pkgo/builtin"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 )
 
-var _ api.ChanAPIW[any] = (*ChanW[any])(nil)
+
+var _ builtin.ChanAPIW[any] = (*ChanW[any])(nil)
 
 type (
 	ChanWrite[E any] interface {

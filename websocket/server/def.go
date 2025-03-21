@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
-	gmap "github.com/CrazyThursdayV50/gotils/pkg/builtin/api/map"
+	"github.com/CrazyThursdayV50/pkgo/builtin"
+	gmap "github.com/CrazyThursdayV50/pkgo/builtin/map"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
 	"github.com/CrazyThursdayV50/pkgo/trace"
@@ -26,7 +26,7 @@ type Server struct {
 	handler         func(ctx context.Context, messageType int, data []byte, err error) (int, []byte, error)
 	c               compressor.Compressor
 	connID          int64
-	conns           api.MapAPI[int64, *conn]
+	conns           builtin.MapAPI[int64, *conn]
 }
 
 func New(opts ...Option) *Server {

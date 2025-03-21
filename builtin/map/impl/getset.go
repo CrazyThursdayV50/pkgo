@@ -1,8 +1,8 @@
 package impl
 
 import (
-	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 	"github.com/CrazyThursdayV50/pkgo/builtin"
+	"github.com/CrazyThursdayV50/pkgo/builtin/wrap"
 )
 
 func (m *Map[K, V]) Set(k K, v V) {

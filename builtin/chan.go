@@ -2,8 +2,6 @@ package builtin
 
 import (
 	"time"
-
-	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 )
 
 type (
@@ -29,7 +27,7 @@ type (
 	}
 
 	baseReadChanAPI[E any] interface {
-		Receive() (wrapper.UnWrapper[E], bool)
+		Receive() (UnWrapper[E], bool)
 		RecvTimeout(recv time.Duration)
 		Iter[int, E]
 	}

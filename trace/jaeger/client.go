@@ -6,7 +6,7 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	jaegerlogger "github.com/CrazyThursdayV50/pkgo/log/jaeger"
 	"github.com/CrazyThursdayV50/pkgo/trace"
