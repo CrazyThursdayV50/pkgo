@@ -4,6 +4,7 @@ import "github.com/aliyun/aliyun-oss-go-sdk/oss"
 
 type (
 	ClientOption = oss.ClientOption
+	Bucket       = oss.Bucket
 )
 
 // client options
