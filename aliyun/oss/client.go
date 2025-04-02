@@ -35,7 +35,7 @@ var (
 )
 
 type Client struct {
-	client *oss.Client
+	*oss.Client
 }
 
 func New(cfg *Config, opts ...ClientOption) (*Client, error) {
@@ -44,5 +44,5 @@ func New(cfg *Config, opts ...ClientOption) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{client: client}, nil
+	return &Client{Client: client}, nil
 }
