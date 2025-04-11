@@ -2,10 +2,13 @@ package telegram
 
 import (
 	"context"
+	"net/http"
+	"net/url"
 
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/trace"
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Bot struct {
@@ -18,7 +21,19 @@ type Update = tgbot.Update
 type UpdateHandler func(context.Context, trace.Tracer, Update, *Bot)
 
 func New(cfg *Config, tracer trace.Tracer) (*Bot, error) {
-	bot, err := tgbot.NewBotAPI(cfg.APIKEY)
+
+	var client http.Client
+	if cfg.Proxy != "" {
+		url, err := url.Parse(cfg.Proxy)
+		if err != nil {
+			return nil, err
+		}
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(url),
+		}
+	}
+
+	bot, err := tgbot.NewBotAPIWithClient(cfg.APIKEY, tgbotapi.APIEndpoint, &client)
 	if err != nil {
 		return nil, err
 	}
