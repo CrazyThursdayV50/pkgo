@@ -15,7 +15,7 @@ type Bot struct {
 
 type Update = tgbot.Update
 
-type UpdateHandler func(context.Context, trace.Tracer, Update)
+type UpdateHandler func(context.Context, trace.Tracer, Update, *Bot)
 
 func New(cfg *Config, tracer trace.Tracer) (*Bot, error) {
 	bot, err := tgbot.NewBotAPI(cfg.APIKEY)
@@ -35,7 +35,7 @@ func (b *Bot) Run(ctx context.Context, handler UpdateHandler) error {
 			select {
 			case <-ctx.Done():
 			default:
-				handler(ctx, b.tracer, update)
+				handler(ctx, b.tracer, update, b)
 			}
 		}
 	})
