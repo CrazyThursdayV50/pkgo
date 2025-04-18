@@ -13,8 +13,9 @@ import (
 
 type Bot struct {
 	*tgbotapi.BotAPI
-	tracer trace.Tracer
-	logger log.Logger
+	tracer       trace.Tracer
+	logger       log.Logger
+	updateFilter []string
 }
 
 type Update = tgbotapi.Update
@@ -38,13 +39,16 @@ func New(cfg *Config, logger log.Logger, tracer trace.Tracer) (*Bot, error) {
 		return nil, err
 	}
 	bot.Debug = cfg.Debug
-	return &Bot{BotAPI: bot, tracer: tracer, logger: logger}, nil
+	return &Bot{BotAPI: bot, tracer: tracer, logger: logger, updateFilter: cfg.UpdateFilter}, nil
 }
 
 func (b *Bot) Run(ctx context.Context, handler UpdateHandler) error {
 	span, ctx := b.tracer.NewSpan(ctx)
 	defer span.Finish()
-	ch := b.GetUpdatesChan(tgbotapi.UpdateConfig{})
+	cfg := tgbotapi.NewUpdate(0)
+	cfg.Timeout = 60
+	cfg.AllowedUpdates = append(make([]string, 0), b.updateFilter...)
+	ch := b.GetUpdatesChan(cfg)
 	goo.Goo(func() {
 		for update := range ch {
 			select {
