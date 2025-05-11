@@ -1,7 +1,8 @@
 package telegram
 
 type Config struct {
-	APIKEY     string
-	Debug      bool
-	KycGroupID int64
+	APIKEY       string
+	Debug        bool
+	Proxy        string
+	UpdateFilter []string
 }
