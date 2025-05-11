@@ -2,6 +2,7 @@ package defaultlogger
 
 import (
 	"os"
+	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"go.uber.org/zap"
@@ -57,7 +58,7 @@ func (l *apiLogger) Init() {
 	encoderCfg.TimeKey = "TIME"
 	encoderCfg.NameKey = "NAME"
 	encoderCfg.MessageKey = "MESSAGE"
-	encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	encoderCfg.EncodeTime = zapcore.TimeEncoderOfLayout(time.StampMilli)
 
 	if l.cfg.Console {
 		encoder = zapcore.NewConsoleEncoder(encoderCfg)

@@ -32,6 +32,7 @@ type (
 func (c *Client) listenClose() {
 	goo.Go(func() {
 		<-c.ctx.Done()
+		c.l.Warn("context canceled")
 		close(c.done)
 		c.conn.Close()
 	})
@@ -65,26 +66,26 @@ func (c *Client) reconnect() error {
 	return c.connect()
 }
 
-func (c *Client) start() {
-	var connected bool
-	for !connected {
-		err := c.connect()
-		if err == nil {
-			connected = true
-			continue
-		}
+// func (c *Client) start() {
+// 	var connected bool
+// 	for !connected {
+// 		err := c.connect()
+// 		if err == nil {
+// 			connected = true
+// 			continue
+// 		}
 
-		c.l.Errorf("connect failed, try to reconnect: %v", zap.Error(err))
-		timer := time.NewTimer(time.Second * 5)
-		select {
-		case <-c.done:
-			return
+// 		c.l.Errorf("connect failed, try to reconnect: %v", zap.Error(err))
+// 		timer := time.NewTimer(time.Second * 5)
+// 		select {
+// 		case <-c.done:
+// 			return
 
-		case <-timer.C:
-			_ = c.connect()
-		}
-	}
-}
+// 		case <-timer.C:
+// 			_ = c.connect()
+// 		}
+// 	}
+// }
 
 func (c *Client) Send(data []byte) error {
 	return c.send(data)
@@ -135,10 +136,7 @@ func (c *Client) runPingLoop() {
 	})
 }
 
-func (c *Client) Run() {
-	c.start()
-	c.runPingLoop()
-
+func (c *Client) onMessage() {
 	goo.Go(func() {
 		for {
 			select {
@@ -155,6 +153,18 @@ func (c *Client) Run() {
 			}
 		}
 	})
+}
+
+func (c *Client) Run() {
+	// c.start()
+	err := c.connect()
+	if err != nil {
+		c.l.Errorf("connect failed: %v", zap.Error(err))
+		return
+	}
+
+	c.runPingLoop()
+	c.onMessage()
 }
 
 func (c *Client) Stop() {
