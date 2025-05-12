@@ -1,7 +1,9 @@
 package defaultlogger
 
 import (
+	"errors"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
@@ -70,7 +72,7 @@ func (l *apiLogger) Init() {
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(l.cfg.CallerSkip))
 
 	l.sugarLogger = logger.Sugar()
-	if err := l.sugarLogger.Sync(); err != nil {
+	if err := l.sugarLogger.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
 		l.sugarLogger.Error(err)
 	}
 }
