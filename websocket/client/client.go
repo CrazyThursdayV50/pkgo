@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	MessageHandler func(context.Context, log.Logger, []byte, func(error)) []byte
+	MessageHandler func(context.Context, log.Logger, int, []byte, func(error)) (int, []byte)
 	Client         struct {
 		ctx       context.Context
 		cancel    context.CancelFunc
@@ -23,10 +23,20 @@ type (
 		done      chan struct{}
 		pingLoop  func(<-chan struct{}, *websocket.Conn)
 		handler   MessageHandler
-		onConnect []func() []byte
+		onConnect []func() (int, []byte)
 
-		c compressor.Compressor
+		c              compressor.Compressor
+		enableCompress bool
 	}
+)
+
+const (
+	TextMessage   = websocket.TextMessage
+	BinaryMessage = websocket.BinaryMessage
+
+	CloseMessage = websocket.CloseMessage
+	PingMessage  = websocket.PingMessage
+	PongMessage  = websocket.PongMessage
 )
 
 func (c *Client) listenClose() {
@@ -40,6 +50,7 @@ func (c *Client) listenClose() {
 
 func (c *Client) connect() error {
 	dialer := websocket.DefaultDialer
+	dialer.EnableCompression = c.enableCompress
 	conn, _, err := dialer.DialContext(c.ctx, c.url, nil)
 	if err != nil {
 		return err
@@ -49,9 +60,9 @@ func (c *Client) connect() error {
 	c.l.Info("connect success")
 
 	for _, f := range c.onConnect {
-		data := f()
+		typ, data := f()
 		if data != nil {
-			err = c.send(data)
+			err = c.send(typ, data)
 			if err != nil {
 				return err
 			}
@@ -88,16 +99,22 @@ func (c *Client) reconnect() error {
 // }
 
 func (c *Client) Send(data []byte) error {
-	return c.send(data)
+	return c.send(websocket.BinaryMessage, data)
 }
 
-func (c *Client) send(data []byte) error {
+func (c *Client) send(typ int, data []byte) error {
 	c.l.Debugf("send: %v", zap.ByteString("message", data))
-	return c.conn.WriteMessage(websocket.TextMessage, data)
+	switch typ {
+	case websocket.CloseMessage, websocket.PingMessage, websocket.PongMessage:
+		return c.conn.WriteControl(typ, data, time.Now().Add(time.Minute))
+
+	default:
+		return c.conn.WriteMessage(typ, data)
+	}
 }
 
 func (c *Client) read(handler MessageHandler) error {
-	_, data, err := c.conn.ReadMessage()
+	typ, data, err := c.conn.ReadMessage()
 	if err != nil {
 		return err
 	}
@@ -109,18 +126,28 @@ func (c *Client) read(handler MessageHandler) error {
 		}
 	}
 
-	message := handler(c.ctx, c.l, data, func(err error) {
+	typ, message := handler(c.ctx, c.l, typ, data, func(err error) {
 		c.l.Error("handle message failed", zap.Any("message", data), zap.Error(err))
 	})
 
-	if message != nil {
+	switch typ {
+	case websocket.BinaryMessage, websocket.TextMessage:
+		if message == nil {
+			return nil
+		}
+
 		if c.c != nil {
 			message, err = c.c.Compress(message)
 			if err != nil {
 				return err
 			}
 		}
-		return c.send(message)
+
+		return c.send(typ, message)
+
+	default:
+
+		c.send(typ, message)
 	}
 
 	return nil

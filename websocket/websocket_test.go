@@ -72,9 +72,9 @@ func TestWebsocket(t *testing.T) {
 			client.WithURL("ws://localhost:18080/ws"),
 			client.WithContext(ctx), client.WithLogger(logger),
 
-			client.WithMessageHandler(func(ctx context.Context, l log.Logger, data []byte, f func(error)) []byte {
+			client.WithMessageHandler(func(ctx context.Context, l log.Logger, typ int, data []byte, f func(error)) (int, []byte) {
 				l.Infof("client receive: %s", data)
-				return nil
+				return websocket.BinaryMessage, nil
 			}),
 
 			client.WithPingLoop(func(done <-chan struct{}, conn *websocket.Conn) {
