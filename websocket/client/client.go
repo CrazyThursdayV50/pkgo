@@ -102,6 +102,14 @@ func (c *Client) Send(data []byte) error {
 	return c.send(websocket.BinaryMessage, data)
 }
 
+func (c *Client) Ping(data []byte) error {
+	return c.send(websocket.PingMessage, data)
+}
+
+func (c *Client) Pong(data []byte) error {
+	return c.send(websocket.PongMessage, data)
+}
+
 func (c *Client) send(typ int, data []byte) error {
 	c.l.Debugf("send: %v", zap.ByteString("message", data))
 	switch typ {
