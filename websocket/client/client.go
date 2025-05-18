@@ -137,7 +137,7 @@ func (c *Client) send(typ int, data []byte) error {
 		return c.conn.WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.TextMessage:
-		c.l.Debugf("send: %s", zap.String("message", string(data)))
+		c.l.Debugf("send: %v", zap.String("message", string(data)))
 		return c.conn.WriteMessage(typ, data)
 
 	default:
