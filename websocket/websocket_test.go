@@ -97,7 +97,7 @@ func TestWebsocket(t *testing.T) {
 
 	// goo.Go(newClient)
 	// goo.Go(newClient)
-	newClient()
+	// newClient()
 	newClient()
 
 	time.Sleep(time.Second * 100)

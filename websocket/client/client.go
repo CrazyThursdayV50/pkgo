@@ -15,19 +15,24 @@ import (
 type (
 	MessageHandler func(context.Context, log.Logger, int, []byte, func(error)) (int, []byte)
 	Client         struct {
-		ctx       context.Context
-		cancel    context.CancelFunc
-		url       string
-		conn      *websocket.Conn
-		l         log.Logger
-		done      chan struct{}
-		pingLoop  func(<-chan struct{}, *websocket.Conn)
-		handler   MessageHandler
-		onConnect []func() (int, []byte)
+		ctx         context.Context
+		cancel      context.CancelFunc
+		url         string
+		conn        *websocket.Conn
+		l           log.Logger
+		done        chan struct{}
+		pingLoop    func(<-chan struct{}, *websocket.Conn)
+		handler     MessageHandler
+		pingHandler func(string) error
+		pongHandler func(string) error
+		onConnect   []func() (int, []byte)
 
-		c              compressor.Compressor
-		enableCompress bool
+		c                   compressor.Compressor
+		enableCompress      bool
+		writeControlTimeout time.Duration
 	}
+
+	PingLoop func(done <-chan struct{}, conn *websocket.Conn)
 )
 
 const (
@@ -55,6 +60,9 @@ func (c *Client) connect() error {
 	if err != nil {
 		return err
 	}
+
+	conn.SetPingHandler(c.pingHandler)
+	conn.SetPongHandler(c.pongHandler)
 
 	c.conn = conn
 	c.l.Info("connect success")
@@ -92,14 +100,18 @@ func (c *Client) reconnect() error {
 // 		case <-c.done:
 // 			return
 
-// 		case <-timer.C:
-// 			_ = c.connect()
-// 		}
-// 	}
-// }
+//			case <-timer.C:
+//				_ = c.connect()
+//			}
+//		}
+//	}
+
+func (c *Client) SendBinary(data []byte) error {
+	return c.send(websocket.BinaryMessage, data)
+}
 
 func (c *Client) Send(data []byte) error {
-	return c.send(websocket.BinaryMessage, data)
+	return c.send(websocket.TextMessage, data)
 }
 
 func (c *Client) Ping(data []byte) error {
@@ -111,12 +123,25 @@ func (c *Client) Pong(data []byte) error {
 }
 
 func (c *Client) send(typ int, data []byte) error {
-	c.l.Debugf("send: %v", zap.ByteString("message", data))
 	switch typ {
-	case websocket.CloseMessage, websocket.PingMessage, websocket.PongMessage:
+	case websocket.CloseMessage:
+		c.l.Debugf("send CLOSE")
 		return c.conn.WriteControl(typ, data, time.Now().Add(time.Minute))
 
+	case websocket.PingMessage:
+		c.l.Debugf("send PING")
+		return c.conn.WriteControl(typ, data, time.Now().Add(time.Minute))
+
+	case websocket.PongMessage:
+		c.l.Debugf("send PONG")
+		return c.conn.WriteControl(typ, data, time.Now().Add(time.Minute))
+
+	case websocket.TextMessage:
+		c.l.Debugf("send: %s", zap.String("message", string(data)))
+		return c.conn.WriteMessage(typ, data)
+
 	default:
+		c.l.Debugf("send: %v", zap.ByteString("message", data))
 		return c.conn.WriteMessage(typ, data)
 	}
 }
@@ -209,6 +234,7 @@ func (c *Client) Stop() {
 func New(opts ...Option) *Client {
 	var c Client
 	c.done = make(chan struct{})
+	c.writeControlTimeout = time.Second
 
 	for _, opt := range opts {
 		opt(&c)
@@ -216,4 +242,10 @@ func New(opts ...Option) *Client {
 
 	c.listenClose()
 	return &c
+}
+
+func (c *Client) UpdateOptions(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
 }

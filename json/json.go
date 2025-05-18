@@ -1,6 +1,8 @@
 package json
 
 import (
+	"encoding/json"
+
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -9,6 +11,8 @@ var (
 	Marshal   = apiJSON.Marshal
 	Unmarshal = apiJSON.Unmarshal
 )
+
+type RawMessage = json.RawMessage
 
 func Init(cfg *jsoniter.Config) {
 	apiJSON = cfg.Froze()

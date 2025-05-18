@@ -2,10 +2,10 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
-	"github.com/gorilla/websocket"
 )
 
 type Option func(*Client)
@@ -22,7 +22,7 @@ func WithLogger(logger log.Logger) Option {
 	return func(c *Client) { c.l = logger }
 }
 
-func WithPingLoop(f func(done <-chan struct{}, _ *websocket.Conn)) Option {
+func WithPingLoop(f PingLoop) Option {
 	return func(c *Client) { c.pingLoop = f }
 }
 
@@ -42,4 +42,28 @@ func WithCompressor(compressor compressor.Compressor) Option {
 
 func WithDefaultCompress(ok bool) Option {
 	return func(c *Client) { c.enableCompress = ok }
+}
+
+func WithPingHandler(timeout time.Duration, f func(string) error) Option {
+	return func(c *Client) {
+		c.pingHandler = func(appData string) error {
+			if f == nil {
+				return c.conn.WriteControl(PongMessage, []byte(appData), time.Now().Add(timeout))
+			}
+
+			return f(appData)
+		}
+	}
+}
+
+func WithPongHandler(timeout time.Duration, f func(string) error) Option {
+	return func(c *Client) {
+		c.pongHandler = func(appData string) error {
+			if f == nil {
+				return nil
+			}
+
+			return f(appData)
+		}
+	}
 }
