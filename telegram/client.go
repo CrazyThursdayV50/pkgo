@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"net/url"
 
@@ -29,9 +30,12 @@ func New(cfg *Config, logger log.Logger, tracer trace.Tracer) (*Bot, error) {
 		if err != nil {
 			return nil, err
 		}
-		client.Transport = &http.Transport{
-			Proxy: http.ProxyURL(url),
+		var transport = http.Transport{
+			Proxy:           http.ProxyURL(url),
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.SkipTlsVerify},
 		}
+
+		client.Transport = &transport
 	}
 
 	bot, err := tgbotapi.NewBotAPIWithClient(cfg.APIKEY, tgbotapi.APIEndpoint, &client)
