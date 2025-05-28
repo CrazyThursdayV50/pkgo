@@ -10,6 +10,9 @@ import (
 
 type Option func(*Client)
 
+func WithProxy(proxy string) Option {
+	return func(c *Client) { c.proxy = proxy }
+}
 func WithMessageHandler(handler MessageHandler) Option {
 	return func(c *Client) { c.handler = handler }
 }

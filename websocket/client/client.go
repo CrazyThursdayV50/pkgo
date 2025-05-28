@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/goo"
@@ -26,6 +28,7 @@ type (
 		pingHandler func(string) error
 		pongHandler func(string) error
 		onConnect   []func() (int, []byte)
+		proxy       string
 
 		c                   compressor.Compressor
 		enableCompress      bool
@@ -56,6 +59,13 @@ func (c *Client) listenClose() {
 func (c *Client) connect() error {
 	dialer := websocket.DefaultDialer
 	dialer.EnableCompression = c.enableCompress
+	if c.proxy != "" {
+		url, err := url.Parse(c.proxy)
+		if err == nil {
+			dialer.Proxy = http.ProxyURL(url)
+		}
+	}
+
 	conn, _, err := dialer.DialContext(c.ctx, c.url, nil)
 	if err != nil {
 		return err
