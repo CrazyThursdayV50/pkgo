@@ -215,16 +215,15 @@ func (c *Client) onMessage() {
 	})
 }
 
-func (c *Client) Run() {
-	// c.start()
+func (c *Client) Run() error {
 	err := c.connect()
 	if err != nil {
-		c.l.Errorf("connect failed: %v", zap.Error(err))
-		return
+		return err
 	}
 
 	c.runPingLoop()
 	c.onMessage()
+	return nil
 }
 
 func (c *Client) Stop() {
