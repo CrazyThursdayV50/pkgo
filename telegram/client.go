@@ -25,18 +25,21 @@ type UpdateHandler func(context.Context, trace.Tracer, Update, *Bot)
 
 func New(cfg *Config, logger log.Logger, tracer trace.Tracer) (*Bot, error) {
 	var client http.Client
+
+	var transport = http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.SkipTlsVerify},
+	}
+
 	if cfg.Proxy != "" {
 		url, err := url.Parse(cfg.Proxy)
 		if err != nil {
 			return nil, err
 		}
-		var transport = http.Transport{
-			Proxy:           http.ProxyURL(url),
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.SkipTlsVerify},
-		}
 
-		client.Transport = &transport
+		transport.Proxy = http.ProxyURL(url)
 	}
+
+	client.Transport = &transport
 
 	bot, err := tgbotapi.NewBotAPIWithClient(cfg.APIKEY, tgbotapi.APIEndpoint, &client)
 	if err != nil {
