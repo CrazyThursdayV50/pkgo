@@ -59,7 +59,11 @@ func (c *Client) listenClose() {
 func (c *Client) connect() error {
 	dialer := websocket.DefaultDialer
 	dialer.EnableCompression = c.enableCompress
-	if c.proxy != "" {
+	switch c.proxy {
+	case "":
+	case "env":
+		dialer.Proxy = http.ProxyFromEnvironment
+	default:
 		url, err := url.Parse(c.proxy)
 		if err == nil {
 			dialer.Proxy = http.ProxyURL(url)
