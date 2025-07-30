@@ -215,7 +215,7 @@ func (c *Client) onMessage() {
 		for {
 			select {
 			case <-c.done:
-				c.l.Info("exit")
+				c.l.Warn("exit")
 				return
 
 			default:

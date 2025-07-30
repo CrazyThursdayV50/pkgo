@@ -11,14 +11,14 @@ import (
 )
 
 func (s *Server) Broadcast(ctx context.Context, messageType int, data []byte) {
-	s.conns.Iter(func(k int64, v *conn) (bool,error) {
+	s.conns.Iter(func(k int64, v *conn) (bool, error) {
 		select {
 		case <-ctx.Done():
-			return true,nil
+			return true, nil
 
 		default:
 			_ = v.send(ctx, s.tracer, messageType, data)
-			return true,nil
+			return true, nil
 		}
 	})
 }
@@ -118,6 +118,7 @@ func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request
 		for {
 			err := s.runConn(ctx, c)
 			if err != nil {
+				s.logger.Errorf("run conn %d failed: %v", c.id, err)
 				return
 			}
 		}
