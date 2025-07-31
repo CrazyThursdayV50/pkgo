@@ -51,7 +51,7 @@ func WithPingHandler(timeout time.Duration, f func(string) error) Option {
 	return func(c *Client) {
 		c.pingHandler = func(appData string) error {
 			if f == nil {
-				return c.reconnector.Connection().Conn.WriteControl(PongMessage, []byte(appData), time.Now().Add(timeout))
+				return c.conn.WriteControl(PongMessage, []byte(appData), time.Now().Add(timeout))
 			}
 
 			return f(appData)
@@ -69,8 +69,4 @@ func WithPongHandler(timeout time.Duration, f func(string) error) Option {
 			return f(appData)
 		}
 	}
-}
-
-func WithReconnectOnStartup(reconnectOnStartup bool) Option {
-	return func(c *Client) { c.reconnectOnStartup = reconnectOnStartup }
 }

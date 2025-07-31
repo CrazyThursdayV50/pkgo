@@ -12,7 +12,7 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/log"
 	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
 	"github.com/CrazyThursdayV50/pkgo/trace/jaeger"
-	"github.com/CrazyThursdayV50/pkgo/websocket/client"
+	client "github.com/CrazyThursdayV50/pkgo/websocket/client"
 	"github.com/CrazyThursdayV50/pkgo/websocket/server"
 	"github.com/gorilla/websocket"
 )
@@ -95,7 +95,7 @@ func TestWebsocket(t *testing.T) {
 		var wg sync.WaitGroup
 		wg.Add(1)
 		wsclient := client.New(
-			client.WithURL("ws://localhost:8080"),
+			client.WithURL("ws://localhost:18080"),
 			// client.WithURL(url),
 			client.WithContext(ctx), client.WithLogger(logger),
 
