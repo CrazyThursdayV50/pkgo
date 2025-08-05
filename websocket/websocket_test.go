@@ -12,7 +12,9 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/log"
 	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
 	"github.com/CrazyThursdayV50/pkgo/trace/jaeger"
+
 	client "github.com/CrazyThursdayV50/pkgo/websocket/client"
+	// client "github.com/CrazyThursdayV50/pkgo/websocket/client-old"
 	"github.com/CrazyThursdayV50/pkgo/websocket/server"
 	"github.com/gorilla/websocket"
 )

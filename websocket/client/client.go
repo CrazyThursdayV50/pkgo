@@ -194,7 +194,7 @@ func New(opts ...Option) *Client {
 	c.reconnector.ReconnectInterval(time.Second)
 	c.reconnector.ReconnectOnStartup(c.reconnectOnStartup)
 	c.listenClose()
-	c.reconnector.SetOnConnect(func(conn *wsconn) {
+	c.reconnector.SetOnConnect(func(ctx context.Context, conn *wsconn) {
 		if conn != nil {
 			conn.Conn.SetPingHandler(c.pingHandler)
 			conn.Conn.SetPongHandler(c.pongHandler)
@@ -225,6 +225,10 @@ func New(opts ...Option) *Client {
 				for {
 					select {
 					case <-c.done:
+						c.l.Warn("exit")
+						return
+
+					case <-ctx.Done():
 						c.l.Warn("exit")
 						return
 

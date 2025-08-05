@@ -19,8 +19,8 @@ type Reconnector[Conn ErrorCloserClosedChecker] struct {
 	reconnectSignalChan chan struct{}
 	sendReconnectSignal func()
 	newConn             ConnectorFunc[Conn]
-	conn                *Conn
-	onConnect           func(Conn)
+	conn                Conn
+	onConnect           func(context.Context, Conn)
 }
 
 func New[Conn ErrorCloserClosedChecker](ctx context.Context, logger log.Logger, newConn func(ctx context.Context) (Conn, error)) *Reconnector[Conn] {
@@ -50,9 +50,9 @@ func (r *Reconnector[Conn]) connect() error {
 		return err
 	}
 
-	r.conn = &conn
+	r.conn = conn
 	if r.onConnect != nil {
-		r.onConnect(conn)
+		r.onConnect(ctx, conn)
 	}
 
 	return nil
@@ -63,14 +63,12 @@ func (r *Reconnector[Conn]) Run() error {
 		for {
 			select {
 			case <-r.ctx.Done():
-				if r.conn != nil {
-					conn := *r.conn
-					if !conn.Closed() {
-						err := conn.Close()
-						if err != nil {
-							r.logger.Errorf("reconnector closed. close connection failed: %v", err)
-							return
-						}
+				conn := r.conn
+				if !conn.Closed() {
+					err := conn.Close()
+					if err != nil {
+						r.logger.Errorf("reconnector closed. close connection failed: %v", err)
+						return
 					}
 				}
 
@@ -78,13 +76,11 @@ func (r *Reconnector[Conn]) Run() error {
 				return
 
 			case <-r.reconnectSignalChan:
-				if r.conn != nil {
-					conn := *r.conn
-					if !conn.Closed() {
-						err := conn.Close()
-						if err != nil {
-							r.logger.Errorf("Close connection failed: %v", err)
-						}
+				conn := r.conn
+				if !conn.Closed() {
+					err := conn.Close()
+					if err != nil {
+						r.logger.Errorf("Close connection failed: %v", err)
 					}
 				}
 
@@ -114,10 +110,10 @@ func (r *Reconnector[Conn]) Run() error {
 }
 
 func (r *Reconnector[Conn]) Connection() Conn {
-	return *r.conn
+	return r.conn
 }
 
-func (r *Reconnector[Conn]) SetOnConnect(onConnect func(conn Conn)) {
+func (r *Reconnector[Conn]) SetOnConnect(onConnect func(context.Context, Conn)) {
 	r.onConnect = onConnect
 }
 
