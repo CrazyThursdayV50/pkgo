@@ -9,15 +9,15 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/CrazyThursdayV50/pkgo/reconnector"
+	"github.com/CrazyThursdayV50/pkgo/reconnector/connection"
+	"github.com/CrazyThursdayV50/pkgo/reconnector/dialerfunc"
 	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 	"go.uber.org/zap"
 
 	"github.com/gorilla/websocket"
 )
 
-type wsconn = reconnector.WrappedErrorCloserChecker[*websocket.Conn]
-
-type wsreconnector = reconnector.Reconnector[*wsconn]
+type wsreconnector = reconnector.Reconnector[*connection.WrappedChecker[*websocket.Conn]]
 
 type (
 	MessageHandler func(context.Context, log.Logger, int, []byte, func(error)) (int, []byte)
@@ -84,23 +84,23 @@ func (c *Client) send(typ int, data []byte) error {
 	switch typ {
 	case websocket.CloseMessage:
 		c.l.Debugf("send CLOSE")
-		return conn.Conn.WriteControl(typ, data, time.Now().Add(time.Minute))
+		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.PingMessage:
 		c.l.Debugf("send PING")
-		return conn.Conn.WriteControl(typ, data, time.Now().Add(time.Minute))
+		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.PongMessage:
 		c.l.Debugf("send PONG")
-		return conn.Conn.WriteControl(typ, data, time.Now().Add(time.Minute))
+		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.TextMessage:
 		c.l.Debugf("send: %v", zap.String("message", string(data)))
-		return conn.Conn.WriteMessage(typ, data)
+		return conn.Conn().WriteMessage(typ, data)
 
 	default:
 		c.l.Debugf("send: %v", zap.ByteString("message", data))
-		return conn.Conn.WriteMessage(typ, data)
+		return conn.Conn().WriteMessage(typ, data)
 	}
 }
 
@@ -182,7 +182,7 @@ func New(opts ...Option) *Client {
 		}
 	}
 
-	c.reconnector = reconnector.NewWithErrorCloserConnectorContext(c.ctx, c.l, func(ctx context.Context) (*websocket.Conn, error) {
+	dialerFunc := dialerfunc.CloserDialerContext[*websocket.Conn](func(ctx context.Context) (*websocket.Conn, error) {
 		conn, _, err := dialer.DialContext(ctx, c.url, nil)
 		if err != nil {
 			return nil, err
@@ -191,15 +191,16 @@ func New(opts ...Option) *Client {
 		return conn, nil
 	})
 
+	c.reconnector = reconnector.New(dialerFunc.Wrap()).WithContext(c.ctx).WithLogger(c.l)
 	c.reconnector.ReconnectInterval(time.Second)
 	c.reconnector.ReconnectOnStartup(c.reconnectOnStartup)
 	c.listenClose()
-	c.reconnector.SetOnConnect(func(ctx context.Context, conn *wsconn) {
+	c.reconnector.SetOnConnect(func(ctx context.Context, conn *connection.WrappedChecker[*websocket.Conn]) {
 		if conn != nil {
-			conn.Conn.SetPingHandler(c.pingHandler)
-			conn.Conn.SetPongHandler(c.pongHandler)
+			conn.Conn().SetPingHandler(c.pingHandler)
+			conn.Conn().SetPongHandler(c.pongHandler)
 			if c.pingLoop != nil {
-				go c.pingLoop(c.ctx.Done(), conn.Conn)
+				go c.pingLoop(c.ctx.Done(), conn.Conn())
 			}
 
 			c.l.Debugf("connect success")
@@ -217,7 +218,7 @@ func New(opts ...Option) *Client {
 			}
 
 			go func() {
-				conn := conn.Conn
+				conn := conn.Conn()
 				if conn == nil {
 					return
 				}

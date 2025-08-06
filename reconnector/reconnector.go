@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
+	"github.com/CrazyThursdayV50/pkgo/reconnector/connection"
 )
 
-type ConnectorFunc[Conn ErrorCloserClosedChecker] func(ctx context.Context) (Conn, error)
-
-type Reconnector[Conn ErrorCloserClosedChecker] struct {
+type ConnectorFunc[Conn connection.Checker] func(ctx context.Context) (Conn, error)
+type Reconnector[Conn connection.Checker] struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	logger log.Logger
@@ -23,11 +23,19 @@ type Reconnector[Conn ErrorCloserClosedChecker] struct {
 	onConnect           func(context.Context, Conn)
 }
 
-func New[Conn ErrorCloserClosedChecker](ctx context.Context, logger log.Logger, newConn func(ctx context.Context) (Conn, error)) *Reconnector[Conn] {
-	var r Reconnector[Conn]
-	r.ctx, r.cancel = context.WithCancel(ctx)
+func (r *Reconnector[Conn]) WithLogger(logger log.Logger) *Reconnector[Conn] {
 	r.logger = logger
-	r.newConn = newConn
+	return r
+}
+
+func (r *Reconnector[Conn]) WithContext(ctx context.Context) *Reconnector[Conn] {
+	r.ctx, r.cancel = context.WithCancel(ctx)
+	return r
+}
+
+func New[Conn connection.Checker](dialer func(context.Context) (Conn, error)) *Reconnector[Conn] {
+	var r Reconnector[Conn]
+	r.newConn = dialer
 	r.reconnectSignalChan = make(chan struct{}, 1)
 	r.sendReconnectSignal = func() {
 		select {
@@ -64,7 +72,7 @@ func (r *Reconnector[Conn]) Run() error {
 			select {
 			case <-r.ctx.Done():
 				conn := r.conn
-				if !conn.Closed() {
+				if !conn.IsClosed() {
 					err := conn.Close()
 					if err != nil {
 						r.logger.Errorf("reconnector closed. close connection failed: %v", err)
@@ -77,7 +85,7 @@ func (r *Reconnector[Conn]) Run() error {
 
 			case <-r.reconnectSignalChan:
 				conn := r.conn
-				if !conn.Closed() {
+				if !conn.IsClosed() {
 					err := conn.Close()
 					if err != nil {
 						r.logger.Errorf("Close connection failed: %v", err)
