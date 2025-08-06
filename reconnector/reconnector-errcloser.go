@@ -30,5 +30,5 @@ func wrappedErrorCloserCheckerConnectorContext[C ErrorCloser](f ErrorCloserConne
 }
 
 func NewWithErrorCloserConnectorContext[C ErrorCloser](ctx context.Context, logger log.Logger, f func(context.Context) (C, error)) *Reconnector[*WrappedErrorCloserChecker[C]] {
-	return New(ctx, logger, wrappedErrorCloserCheckerConnectorContext(f))
+	return New[*WrappedErrorCloserChecker[C]]().WithContext(ctx).WithLogger(logger).WithDialerContext(wrappedErrorCloserCheckerConnectorContext(f))
 }
