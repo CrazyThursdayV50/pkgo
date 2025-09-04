@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 
 	"github.com/CrazyThursdayV50/pkgo/crypto"
-	"github.com/CrazyThursdayV50/pkgo/crypto/ecdsa"
+	"github.com/CrazyThursdayV50/pkgo/crypto/ecdsa/secp256k1"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -16,7 +16,7 @@ func GenAddressFromPubKey(pubkey []byte) (string, error) {
 }
 
 func GenAddressFromPrvKey(prvkey []byte) (string, error) {
-	pubkey := ecdsa.GenPubKey(prvkey)
+	pubkey := secp256k1.GenPubKey(prvkey)
 	addr, err := GenAddressFromPubKey(pubkey)
 	if err != nil {
 		return "", err
