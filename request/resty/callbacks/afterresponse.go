@@ -27,7 +27,7 @@ func TraceResponse(tracer trace.Tracer) func(*resty.Client, *resty.Response) err
 
 func LogAfterResponse(logger log.Logger) func(*resty.Client, *resty.Response) error {
 	return func(c *resty.Client, r *resty.Response) error {
-		logger.Infof("incoming response",
+		logger.Info("incoming response",
 			zap.String("method", r.Request.Method),
 			zap.String("url", r.Request.URL),
 			zap.String("status", r.Status()),
@@ -41,7 +41,7 @@ func LogAfterResponse(logger log.Logger) func(*resty.Client, *resty.Response) er
 
 func LogOnError(logger log.Logger) func(*resty.Request, error) {
 	return func(r *resty.Request, err error) {
-		logger.Errorf("request failed",
+		logger.Error("request failed",
 			zap.String("method", r.Method),
 			zap.String("url", r.URL),
 			zap.Any("header", r.Header),

@@ -48,8 +48,8 @@ func New(cfg *Config, logger log.Logger) *Client {
 
 func (c *Client) Chat(ctx context.Context, q string, model string) (string, error) {
 	resp, err := c.client.CreateChatCompletion(ctx, gpt3.ChatCompletionRequest{
-		Model:     model,
-		MaxTokens: c.cfg.MaxTokens,
+		Model:               model,
+		MaxCompletionTokens: c.cfg.MaxTokens,
 		Messages: []gpt3.ChatCompletionMessage{
 			{
 				Role:    gpt3.ChatMessageRoleSystem,
@@ -70,8 +70,8 @@ func (c *Client) Chat(ctx context.Context, q string, model string) (string, erro
 
 func (c *Client) ChatStream(ctx context.Context, q string, model string) (string, error) {
 	stream, err := c.client.CreateChatCompletionStream(ctx, gpt3.ChatCompletionRequest{
-		Model:     model,
-		MaxTokens: c.cfg.MaxTokens,
+		Model:               model,
+		MaxCompletionTokens: c.cfg.MaxTokens,
 		Messages: []gpt3.ChatCompletionMessage{
 			{
 				Role:    gpt3.ChatMessageRoleSystem,
