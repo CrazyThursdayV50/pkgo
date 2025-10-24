@@ -3,11 +3,10 @@ package gormlogger
 import (
 	"time"
 
-	"github.com/CrazyThursdayV50/pkgo/log"
 	"gorm.io/gorm/logger"
 )
 
-func New(l log.Logger, cfg *logger.Config) logger.Interface {
+func New(l logger.Writer, cfg *logger.Config) logger.Interface {
 	logCfg := logger.Config{
 		SlowThreshold:             cfg.SlowThreshold * time.Millisecond,
 		Colorful:                  cfg.Colorful,

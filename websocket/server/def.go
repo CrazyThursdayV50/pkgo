@@ -33,8 +33,9 @@ func New(opts ...Option) *Server {
 	var s Server
 	s.readBufferSize = defaultReadBufferSize
 	s.writeBufferSize = defaultWriteBufferSize
-	s.logger = defaultlogger.New(defaultlogger.DefaultConfig())
-	s.logger.Init()
+	logger := defaultlogger.New(defaultlogger.DefaultConfig())
+	logger.Init()
+	s.logger = logger
 	s.conns = gmap.Make[int64, *conn](0)
 
 	for _, opt := range opts {

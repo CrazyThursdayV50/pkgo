@@ -61,8 +61,9 @@ func New[J any](name string, do func(job J)) (*Worker[J], func(J)) {
 	var trigger = gchan.Make[J](0)
 	w.trigger = trigger
 	w.WithContext(context.TODO())
-	w.logger = defaultlogger.New(defaultlogger.DefaultConfig())
-	w.logger.Init()
+	logger := defaultlogger.New(defaultlogger.DefaultConfig())
+	w.logger = logger
+	logger.Init()
 	return &w, func(j J) {
 		trigger.Send(j)
 	}

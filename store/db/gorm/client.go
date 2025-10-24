@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/CrazyThursdayV50/pkgo/log"
 	gormlogger "github.com/CrazyThursdayV50/pkgo/log/gorm"
 	"github.com/CrazyThursdayV50/pkgo/trace"
 	sql "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	g "gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DB struct {
@@ -33,7 +33,7 @@ func (db *DB) Tx(ctx context.Context, f func() bool) (*g.DB, func()) {
 	return tx, fn
 }
 
-func NewDB(logger log.Logger, tracer trace.Tracer, cfg *Config) *DB {
+func NewDB(logger logger.Writer, tracer trace.Tracer, cfg *Config) (*DB, error) {
 	gl := gormlogger.New(logger, &cfg.Logger)
 	cfg.Gorm.Logger = gl
 	dsnConf, _ := sql.ParseDSN(cfg.DSN)
@@ -45,12 +45,12 @@ func NewDB(logger log.Logger, tracer trace.Tracer, cfg *Config) *DB {
 
 	db, err := g.Open(dialector, &cfg.Gorm)
 	if err != nil {
-		logger.Fatalf("new gorm client failed: %v", err)
+		return nil, err
 	}
 
 	inner, err := db.DB()
 	if err != nil {
-		logger.Fatalf("get db failed: %v", err)
+		return nil, err
 	}
 
 	inner.SetMaxIdleConns(cfg.MaxIdleConn)
@@ -59,7 +59,7 @@ func NewDB(logger log.Logger, tracer trace.Tracer, cfg *Config) *DB {
 	inner.SetConnMaxIdleTime(time.Duration(cfg.MaxIdleTime) * time.Minute)
 
 	registerInterceptors(db, traceInterceptor(tracer))
-	return &DB{db}
+	return &DB{db}, nil
 }
 
 func DefaultFindInBatchesCallback(tx *g.DB, batch int) error { return tx.Error }

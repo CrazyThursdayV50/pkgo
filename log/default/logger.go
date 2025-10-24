@@ -78,7 +78,6 @@ func (l *apiLogger) Init() {
 }
 
 // Logger methods
-
 func (l *apiLogger) Debug(args ...interface{}) {
 	l.sugarLogger.Debug(args...)
 }

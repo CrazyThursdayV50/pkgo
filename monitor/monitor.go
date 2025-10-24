@@ -20,8 +20,9 @@ type Monitor struct {
 func New(ctx context.Context, name string) *Monitor {
 	var s Monitor
 	s.ctx, s.cancel = context.WithCancel(ctx)
-	s.logger = defaultlogger.New(defaultlogger.DefaultConfig())
-	s.logger.Init()
+	logger := defaultlogger.New(defaultlogger.DefaultConfig())
+	logger.Init()
+	s.logger = logger
 	if name == "" {
 		name = "Monitor"
 	}
@@ -67,8 +68,8 @@ func wrap(next, f func()) func() {
 	}
 }
 
-func (s *Monitor) Stop()                       { s.cancel() }
-func (s *Monitor) Done() <-chan struct{}       { return s.ctx.Done() }
-func (s *Monitor) OnStart(f func())            { s.onStart = wrap(f, s.onStart) }
-func (s *Monitor) OnExit(f func())             { s.onExit = wrap(s.onExit, f) }
-func (s *Monitor) SetLogger(logger log.Logger) { s.logger = logger }
+func (s *Monitor) Stop()                                { s.cancel() }
+func (s *Monitor) Done() <-chan struct{}                { return s.ctx.Done() }
+func (s *Monitor) OnStart(f func()) *Monitor            { s.onStart = wrap(f, s.onStart); return s }
+func (s *Monitor) OnExit(f func()) *Monitor             { s.onExit = wrap(s.onExit, f); return s }
+func (s *Monitor) SetLogger(logger log.Logger) *Monitor { s.logger = logger; return s }

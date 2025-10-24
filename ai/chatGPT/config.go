@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	Model       string
-	Token       string
-	MaxTokens   int
-	Temperature float32
-	SystemFile  string
+	Model               string
+	Token               string
+	MaxTokens           int
+	MaxCompletionTokens int
+	Temperature         float32
+	SystemFile          string
 }
 
 func DefaultConfig() *Config {

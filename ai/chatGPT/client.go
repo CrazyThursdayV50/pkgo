@@ -6,57 +6,48 @@ import (
 	"io"
 	"os"
 
+	"github.com/CrazyThursdayV50/pkgo/file"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	gpt3 "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 )
 
 type Client struct {
-	cfg    *Config
-	client *gpt3.Client
-	system string
+	cfg           *Config
+	client        *openai.Client
+	systemContent string
 }
 
-var (
-	ChatGPT4     = gpt3.GPT4Turbo
-	ChatGPT4o    = gpt3.GPT4o
-	ChatGPT3Dot5 = gpt3.GPT3Dot5Turbo
-)
-
-func New(cfg *Config, logger log.Logger) *Client {
+func New(cfg *Config, logger log.Logger) (*Client, error) {
 	if cfg.Token == "" {
 		cfg.Token = os.Getenv("OPENAI_API_KEY")
 	}
 
-	client := gpt3.NewClient(cfg.Token)
+	c := openai.NewClient(cfg.Token)
 
-	var systemData []byte
+	client := Client{cfg: cfg, client: c}
 	if cfg.SystemFile != "" {
-		file, err := os.Open(cfg.SystemFile)
+		systemContent, err := file.ReadFileToString(cfg.SystemFile)
 		if err != nil {
-			logger.DPanicf("open system file failed: %v", err)
+			return nil, err
 		}
-		defer file.Close()
-
-		systemData, err = io.ReadAll(file)
-		if err != nil {
-			logger.DPanicf("read system file failed: %v", err)
-		}
+		client.systemContent = systemContent
 	}
 
-	return &Client{cfg: cfg, client: client, system: string(systemData)}
+	return &client, nil
 }
 
-func (c *Client) Chat(ctx context.Context, q string, model string) (string, error) {
-	resp, err := c.client.CreateChatCompletion(ctx, gpt3.ChatCompletionRequest{
-		Model:               model,
-		MaxCompletionTokens: c.cfg.MaxTokens,
-		Messages: []gpt3.ChatCompletionMessage{
+func (c *Client) Chat(ctx context.Context, q string) (string, error) {
+	resp, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+		Model:               c.cfg.Model,
+		MaxTokens:           c.cfg.MaxTokens,
+		MaxCompletionTokens: c.cfg.MaxCompletionTokens,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    gpt3.ChatMessageRoleSystem,
-				Content: c.system,
+				Role:    openai.ChatMessageRoleSystem,
+				Content: c.systemContent,
 			},
 			{
-				Role:    gpt3.ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: q,
 			},
 		},
@@ -68,38 +59,54 @@ func (c *Client) Chat(ctx context.Context, q string, model string) (string, erro
 	return resp.Choices[0].Message.Content, nil
 }
 
-func (c *Client) ChatStream(ctx context.Context, q string, model string) (string, error) {
-	stream, err := c.client.CreateChatCompletionStream(ctx, gpt3.ChatCompletionRequest{
-		Model:               model,
-		MaxCompletionTokens: c.cfg.MaxTokens,
-		Messages: []gpt3.ChatCompletionMessage{
-			{
-				Role:    gpt3.ChatMessageRoleSystem,
-				Content: c.system,
-			},
-			{
-				Role:    gpt3.ChatMessageRoleUser,
-				Content: q,
-			},
-		},
-		Temperature: c.cfg.Temperature,
-	})
-	if err != nil {
-		return "", err
-	}
-	defer stream.Close()
+func (c *Client) ChatStream(ctx context.Context, q string, model string) (<-chan string, <-chan error) {
+	var textChan = make(chan string, 100)
+	var errChan = make(chan error, 1)
 
-	var answer string
-	for {
-		resp, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			return answer, nil
-		}
+	go func() {
+		defer close(errChan)
+		defer close(textChan)
+
+		stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+			Model:               c.cfg.Model,
+			MaxTokens:           c.cfg.MaxTokens,
+			MaxCompletionTokens: c.cfg.MaxCompletionTokens,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: c.systemContent,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: q,
+				},
+			},
+			Temperature: c.cfg.Temperature,
+		})
+
 		if err != nil {
-			return "", err
+			errChan <- err
+			return
 		}
-		answer += resp.Choices[0].Delta.Content
-	}
+
+		defer stream.Close()
+
+		for {
+			resp, err := stream.Recv()
+			if errors.Is(err, io.EOF) {
+				return
+			}
+
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			textChan <- resp.Choices[0].Delta.Content
+		}
+	}()
+
+	return textChan, errChan
 }
 
-func (c *Client) System() string { return c.system }
+func (c *Client) System() string { return c.systemContent }

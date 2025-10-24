@@ -36,8 +36,9 @@ func New[J any](ctx context.Context, sendTimeout, recvTimeout time.Duration) *Le
 	leader.deliveryChan = gchan.Make[J](0)
 	leader.deliveryChan.SendTimeout(sendTimeout)
 	leader.deliveryChan.RecvTimeout(recvTimeout)
-	leader.logger = defaultlogger.New(defaultlogger.DefaultConfig())
-	leader.logger.Init()
+	logger := defaultlogger.New(defaultlogger.DefaultConfig())
+	logger.Init()
+	leader.logger = logger
 	return &leader
 }
 
