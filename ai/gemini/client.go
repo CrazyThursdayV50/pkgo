@@ -4,10 +4,13 @@ import (
 	"context"
 	"os"
 
+	"github.com/CrazyThursdayV50/pkgo/ai"
 	"github.com/CrazyThursdayV50/pkgo/file"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"google.golang.org/genai"
 )
+
+var _ ai.Chatter = (*Client)(nil)
 
 type Client struct {
 	cfg           *Config

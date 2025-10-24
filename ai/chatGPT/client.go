@@ -6,10 +6,13 @@ import (
 	"io"
 	"os"
 
+	"github.com/CrazyThursdayV50/pkgo/ai"
 	"github.com/CrazyThursdayV50/pkgo/file"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/sashabaranov/go-openai"
 )
+
+var _ ai.Chatter = (*Client)(nil)
 
 type Client struct {
 	cfg           *Config
@@ -59,7 +62,7 @@ func (c *Client) Chat(ctx context.Context, q string) (string, error) {
 	return resp.Choices[0].Message.Content, nil
 }
 
-func (c *Client) ChatStream(ctx context.Context, q string, model string) (<-chan string, <-chan error) {
+func (c *Client) ChatStream(ctx context.Context, q string) (<-chan string, <-chan error) {
 	var textChan = make(chan string, 100)
 	var errChan = make(chan error, 1)
 
