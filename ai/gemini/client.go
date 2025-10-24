@@ -58,7 +58,7 @@ func (c *Client) Chat(ctx context.Context, q string) (string, error) {
 		ctx,
 		c.cfg.Model,
 		content,
-		nil,
+		&genai.GenerateContentConfig{ThinkingConfig: c.cfg.thinkingCfg},
 	)
 	if err != nil {
 		return "", err
@@ -74,7 +74,7 @@ func (c *Client) ChatStream(ctx context.Context, q string) (<-chan string, <-cha
 			genai.NewContentFromText(c.systemContent, genai.RoleModel),
 			genai.NewContentFromText(q, genai.RoleUser),
 		},
-		nil,
+		&genai.GenerateContentConfig{ThinkingConfig: c.cfg.thinkingCfg},
 	)
 
 	var textChan = make(chan string, 100)
