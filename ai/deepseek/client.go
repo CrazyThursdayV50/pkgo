@@ -1,4 +1,4 @@
-package chatgpt
+package deepseek
 
 import (
 	"context"
@@ -12,6 +12,10 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
+const (
+	baseURL = "https://api.deepseek.com/v1"
+)
+
 var _ ai.Chatter = (*Client)(nil)
 
 type Client struct {
@@ -22,10 +26,13 @@ type Client struct {
 
 func New(cfg *Config, logger log.Logger) (*Client, error) {
 	if cfg.Token == "" {
-		cfg.Token = os.Getenv("OPENAI_API_KEY")
+		cfg.Token = os.Getenv("DEEPSEEK_API_KEY")
 	}
 
-	c := openai.NewClient(cfg.Token)
+	defaultCfg := openai.DefaultConfig(cfg.Token)
+	defaultCfg.BaseURL = baseURL
+
+	c := openai.NewClientWithConfig(defaultCfg)
 
 	client := Client{cfg: cfg, client: c}
 	if cfg.SystemFile != "" {

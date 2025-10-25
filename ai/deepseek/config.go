@@ -1,4 +1,4 @@
-package chatgpt
+package deepseek
 
 import (
 	"os"
@@ -7,20 +7,16 @@ import (
 )
 
 type Config struct {
-	BaseURL             string
-	Model               string
-	Token               string
-	MaxTokens           int
-	MaxCompletionTokens int
-	Temperature         float32
-	SystemFile          string
+	Model       string
+	Token       string
+	Temperature float32
+	SystemFile  string
 }
 
 func DefaultConfig() *Config {
 	return &Config{
 		Model:       openai.GPT4Turbo,
 		Token:       os.Getenv("OPENAI_API_KEY"),
-		MaxTokens:   4000,
 		Temperature: 0.5,
 		SystemFile:  "",
 	}

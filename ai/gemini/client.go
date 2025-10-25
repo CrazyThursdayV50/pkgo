@@ -46,19 +46,16 @@ func New(ctx context.Context, logger log.Logger, cfg *Config) (*Client, error) {
 func (c *Client) System() string { return c.systemContent }
 
 func (c *Client) Chat(ctx context.Context, q string) (string, error) {
-	var content = []*genai.Content{
-		genai.NewContentFromText(q, genai.RoleUser),
-	}
-
+	var cfg = genai.GenerateContentConfig{ThinkingConfig: c.cfg.thinkingCfg}
 	if c.systemContent != "" {
-		content = append(content, genai.NewContentFromText(c.systemContent, genai.RoleModel))
+		cfg.SystemInstruction = genai.NewContentFromText(c.systemContent, genai.RoleModel)
 	}
 
 	result, err := c.client.Models.GenerateContent(
 		ctx,
 		c.cfg.Model,
-		content,
-		&genai.GenerateContentConfig{ThinkingConfig: c.cfg.thinkingCfg},
+		genai.Text(q),
+		&cfg,
 	)
 	if err != nil {
 		return "", err
@@ -67,14 +64,16 @@ func (c *Client) Chat(ctx context.Context, q string) (string, error) {
 }
 
 func (c *Client) ChatStream(ctx context.Context, q string) (<-chan string, <-chan error) {
+	var cfg = genai.GenerateContentConfig{ThinkingConfig: c.cfg.thinkingCfg}
+	if c.systemContent != "" {
+		cfg.SystemInstruction = genai.NewContentFromText(c.systemContent, genai.RoleModel)
+	}
+
 	seq := c.client.Models.GenerateContentStream(
 		ctx,
 		c.cfg.Model,
-		[]*genai.Content{
-			genai.NewContentFromText(c.systemContent, genai.RoleModel),
-			genai.NewContentFromText(q, genai.RoleUser),
-		},
-		&genai.GenerateContentConfig{ThinkingConfig: c.cfg.thinkingCfg},
+		genai.Text(q),
+		&cfg,
 	)
 
 	var textChan = make(chan string, 100)
