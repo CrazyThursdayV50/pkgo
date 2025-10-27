@@ -3,22 +3,35 @@ package deepseek
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/CrazyThursdayV50/pkgo/file"
 	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
 )
 
 func TestChat(t *testing.T) {
 	var config Config
-	config.Model = "deepseek-reasoner"
+	config.Model = "deepseek-chat"
 	config.SystemFile = "../.system"
 	ctx := context.TODO()
 	logger := defaultlogger.New(defaultlogger.DefaultConfig())
 	logger.Init()
 
-	q := "who are you?"
+	userPrompt, err := file.ReadFileToString("../.user")
+	if err != nil {
+		t.Fatalf("read user prompt failed: %v", err)
+		return
+	}
 
+	q, err := file.ReadFileToString("../question.json")
+	if err != nil {
+		t.Fatalf("read question failed: %v", err)
+		return
+	}
+
+	q = strings.ReplaceAll(userPrompt, "{{input_data}}", q)
 	client, err := New(&config, logger)
 	if err != nil {
 		t.Fatalf("new client failed: %v", err)

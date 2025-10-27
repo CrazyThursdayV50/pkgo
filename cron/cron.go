@@ -32,7 +32,6 @@ func defaultOptions() []Option {
 	logger := defaultlogger.New(defaultlogger.DefaultConfig())
 	logger.Init()
 	return []Option{
-		WithContext(context.TODO()),
 		WithJob(func() {}, time.Minute),
 		WithRunAfterStart(-1),
 		WithWaitAfterRun(false),
@@ -85,7 +84,6 @@ func (c *Cron) init() {
 
 	c.done = make(chan struct{})
 	c.worker, c.trigger = worker.New("Cron", func(context.Context) { c.job() })
-	c.worker.WithContext(c.ctx)
 	c.worker.WithGraceful(false)
 	c.worker.WithLogger(c.logger)
 
@@ -171,8 +169,9 @@ func New(opts ...Option) *Cron {
 	return &c
 }
 
-func (c *Cron) Run() {
-	c.worker.Run()
+func (c *Cron) Run(ctx context.Context) {
+	c.ctx, c.cancel = context.WithCancel(ctx)
+	c.worker.Run(c.ctx)
 	c.runOnStart()
 	if c.waitAfterRun {
 		c.timerRun()

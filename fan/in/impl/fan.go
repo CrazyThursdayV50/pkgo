@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"context"
 	"sync"
 
 	"github.com/CrazyThursdayV50/pkgo/builtin/slice"
@@ -15,7 +16,7 @@ type Fan[T any] struct {
 func New[element any](handler func(t element), from ...<-chan element) *Fan[element] {
 	var fan Fan[element]
 	worker, delivery := worker.New("worker", handler)
-	worker.Run()
+	worker.Run(context.TODO())
 	worker.WithGraceful(true)
 	fan.worker = worker
 
@@ -31,8 +32,9 @@ func New[element any](handler func(t element), from ...<-chan element) *Fan[elem
 		return true, nil
 	})
 
+	// 所有  from 通道关闭之后，worker 才自动结束
 	goo.Go(func() {
-		wg.Done()
+		wg.Wait()
 		fan.worker.Stop()
 	})
 

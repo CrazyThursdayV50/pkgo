@@ -17,9 +17,9 @@ type Monitor struct {
 	run     func(context.Context)
 }
 
-func New(ctx context.Context, name string) *Monitor {
+func New(name string) *Monitor {
 	var s Monitor
-	s.ctx, s.cancel = context.WithCancel(ctx)
+	s.ctx, s.cancel = context.WithCancel(context.TODO())
 	logger := defaultlogger.New(defaultlogger.DefaultConfig())
 	logger.Init()
 	s.logger = logger
@@ -31,7 +31,7 @@ func New(ctx context.Context, name string) *Monitor {
 	return &s
 }
 
-func (s *Monitor) Run(f func(context.Context)) {
+func (s *Monitor) Run(ctx context.Context, f func(context.Context)) {
 	if s.onStart != nil {
 		s.onStart()
 	}

@@ -23,10 +23,9 @@ func (b *Leader[J]) Do(job J) {
 }
 
 func (b *Leader[J]) AddWorker(worker *worker.Worker[J]) {
-	worker.WithContext(b.ctx)
 	worker.WithTrigger(b.deliveryChan.Unwrap())
 	worker.WithLogger(b.logger)
-	worker.Run()
+	worker.Run(b.ctx)
 }
 
 func New[J any](ctx context.Context, sendTimeout, recvTimeout time.Duration) *Leader[J] {

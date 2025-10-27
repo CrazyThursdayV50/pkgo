@@ -58,19 +58,15 @@ func New[J any](name string, do func(job J)) (*Worker[J], func(J)) {
 		do(j)
 		w.count++
 	}
+	w.Monitor = monitor.New(w.name)
 	var trigger = gchan.Make[J](0)
 	w.trigger = trigger
-	w.WithContext(context.TODO())
 	logger := defaultlogger.New(defaultlogger.DefaultConfig())
 	w.logger = logger
 	logger.Init()
 	return &w, func(j J) {
 		trigger.Send(j)
 	}
-}
-
-func (w *Worker[J]) WithContext(ctx context.Context) {
-	w.Monitor = monitor.New(ctx, w.name)
 }
 
 func (w *Worker[J]) WithGraceful(ok bool) {
@@ -85,14 +81,14 @@ func (w *Worker[J]) WithLogger(logger log.Logger) {
 	w.logger = logger
 }
 
-func (w *Worker[J]) Run() {
+func (w *Worker[J]) Run(ctx context.Context) {
 	w.Monitor.SetLogger(w.logger)
 	if w.graceful {
 		w.Monitor.OnExit(func() {
 			w.logger.Info("Worker stop gracefully, wait for all jobs done and trigger closed.")
 		})
 	}
-	w.Monitor.Run(w.run)
+	w.Monitor.Run(ctx, w.run)
 }
 
 func (m *Worker[J]) Stop() {
