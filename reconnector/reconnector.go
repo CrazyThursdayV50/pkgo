@@ -28,10 +28,10 @@ func (r *Reconnector[Conn]) WithLogger(logger log.Logger) *Reconnector[Conn] {
 	return r
 }
 
-func (r *Reconnector[Conn]) WithContext(ctx context.Context) *Reconnector[Conn] {
-	r.ctx, r.cancel = context.WithCancel(ctx)
-	return r
-}
+// func (r *Reconnector[Conn]) WithContext(ctx context.Context) *Reconnector[Conn] {
+// r.ctx, r.cancel = context.WithCancel(ctx)
+// return r
+// }
 
 func New[Conn connection.Checker](dialer func(context.Context) (Conn, error)) *Reconnector[Conn] {
 	var r Reconnector[Conn]
@@ -66,7 +66,9 @@ func (r *Reconnector[Conn]) connect() error {
 	return nil
 }
 
-func (r *Reconnector[Conn]) Run() error {
+func (r *Reconnector[Conn]) Run(ctx context.Context) error {
+	r.ctx, r.cancel = context.WithCancel(ctx)
+
 	go func() {
 		for {
 			select {

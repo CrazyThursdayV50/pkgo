@@ -148,8 +148,9 @@ func (c *Client) readOnConn(conn *websocket.Conn, handler MessageHandler) error 
 	return nil
 }
 
-func (c *Client) Run() error {
-	err := c.reconnector.Run()
+func (c *Client) Run(ctx context.Context) error {
+	c.ctx, c.cancel = context.WithCancel(ctx)
+	err := c.reconnector.Run(c.ctx)
 	if err != nil {
 		return err
 	}
@@ -191,7 +192,7 @@ func New(opts ...Option) *Client {
 		return conn, nil
 	})
 
-	c.reconnector = reconnector.New(dialerFunc.Wrap()).WithContext(c.ctx).WithLogger(c.l)
+	c.reconnector = reconnector.New(dialerFunc.Wrap()).WithLogger(c.l)
 	c.reconnector.ReconnectInterval(time.Second)
 	c.reconnector.ReconnectOnStartup(c.reconnectOnStartup)
 	c.listenClose()

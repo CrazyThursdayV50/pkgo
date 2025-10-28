@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
@@ -31,12 +30,6 @@ func WithPingLoop(f PingLoop) Option {
 
 func WithSendOnConnect(f func() (int, []byte)) Option {
 	return func(c *Client) { c.onConnect = append(c.onConnect, f) }
-}
-
-func WithContext(ctx context.Context) Option {
-	return func(c *Client) {
-		c.ctx, c.cancel = context.WithCancel(ctx)
-	}
 }
 
 func WithCompressor(compressor compressor.Compressor) Option {

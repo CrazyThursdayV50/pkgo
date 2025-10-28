@@ -99,7 +99,7 @@ func TestWebsocket(t *testing.T) {
 		wsclient := client.New(
 			client.WithURL("ws://localhost:18080"),
 			// client.WithURL(url),
-			client.WithContext(ctx), client.WithLogger(logger),
+			client.WithLogger(logger),
 
 			client.WithMessageHandler(func(ctx context.Context, l log.Logger, typ int, data []byte, f func(error)) (int, []byte) {
 				l.Infof("client receive: %s", data)
@@ -124,7 +124,7 @@ func TestWebsocket(t *testing.T) {
 			// }),
 		)
 
-		wsclient.Run()
+		wsclient.Run(ctx)
 		wg.Wait()
 		return wsclient
 	}

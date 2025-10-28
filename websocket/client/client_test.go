@@ -21,7 +21,7 @@ func TestClient(t *testing.T) {
 	wsclient := New(
 		WithReconnectOnStartup(true),
 		WithURL("ws://localhost:18080"),
-		WithContext(ctx), WithLogger(logger),
+		WithLogger(logger),
 
 		WithMessageHandler(func(ctx context.Context, l log.Logger, typ int, data []byte, f func(error)) (int, []byte) {
 			l.Infof("client receive: %s", data)
@@ -58,7 +58,7 @@ func TestClient(t *testing.T) {
 		}),
 	)
 
-	err := wsclient.Run()
+	err := wsclient.Run(ctx)
 	if err != nil {
 		logger.Errorf("run ws client failed: %v", err)
 	}
