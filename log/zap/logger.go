@@ -4,9 +4,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/CrazyThursdayV50/pkgo/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+type Field = zap.Field
+
+var _ log.DescLogger[Field] = (*zap.Logger)(nil)
 
 var loggerLevelMap = map[string]zapcore.Level{
 	"debug":  zapcore.DebugLevel,

@@ -5,7 +5,8 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/log/zap"
 )
 
-var _ log.Logger = (*apiLogger)(nil)
+var _ log.FormatterLogger[any] = (*apiLogger)(nil)
+var _ log.SimpleLogger[any] = (*apiLogger)(nil)
 
 type apiLogger struct {
 	sugar log.Logger
@@ -22,38 +23,38 @@ func New(cfg *Config) *apiLogger {
 }
 
 // Logger methods
-func (l *apiLogger) Debug(args ...interface{}) {
+func (l *apiLogger) Debug(args ...any) {
 	l.sugar.Debug(args...)
 }
 
-func (l *apiLogger) Debugf(template string, args ...interface{}) {
+func (l *apiLogger) Debugf(template string, args ...any) {
 	l.sugar.Debugf(template, args...)
 }
 
-func (l *apiLogger) Info(args ...interface{}) {
+func (l *apiLogger) Info(args ...any) {
 	l.sugar.Info(args...)
 }
 
-func (l *apiLogger) Infof(template string, args ...interface{}) {
+func (l *apiLogger) Infof(template string, args ...any) {
 	l.sugar.Infof(template, args...)
 }
 
-func (l *apiLogger) Warn(args ...interface{}) {
+func (l *apiLogger) Warn(args ...any) {
 	l.sugar.Warn(args...)
 }
 
-func (l *apiLogger) Warnf(template string, args ...interface{}) {
+func (l *apiLogger) Warnf(template string, args ...any) {
 	l.sugar.Warnf(template, args...)
 }
 
-func (l *apiLogger) Error(args ...interface{}) {
+func (l *apiLogger) Error(args ...any) {
 	l.sugar.Error(args...)
 }
 
-func (l *apiLogger) Errorf(template string, args ...interface{}) {
+func (l *apiLogger) Errorf(template string, args ...any) {
 	l.sugar.Errorf(template, args...)
 }
 
-func (l *apiLogger) Printf(template string, args ...interface{}) {
+func (l *apiLogger) Printf(template string, args ...any) {
 	l.sugar.Infof(template, args...)
 }

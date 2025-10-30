@@ -5,16 +5,16 @@ import (
 	"github.com/uber/jaeger-client-go"
 )
 
-type jaegerLogger struct{ log.Logger }
+type jaegerLogger struct{ log.FormatterLogger[any] }
 
 func (l *jaegerLogger) Error(msg string) {
-	l.Logger.Errorf(msg)
+	l.FormatterLogger.Errorf(msg)
 }
 
 func (l *jaegerLogger) Infof(msg string, args ...any) {
-	l.Logger.Infof(msg, args...)
+	l.FormatterLogger.Infof(msg, args...)
 }
 
-func New(logger log.Logger) jaeger.Logger {
+func New(logger log.FormatterLogger[any]) jaeger.Logger {
 	return &jaegerLogger{logger}
 }
