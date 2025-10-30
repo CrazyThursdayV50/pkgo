@@ -18,8 +18,7 @@ func New(cfg *Config) *apiLogger {
 	sugar := zap.New(cfg).Sugar()
 
 	if err := sugar.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
-		sugar.Error(err)
-		return nil
+		sugar.Warnf("sugarLogger sync failed: %v", err)
 	}
 
 	return &apiLogger{sugar: sugar}
