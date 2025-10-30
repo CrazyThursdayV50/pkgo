@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/file"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 )
 
 func TestChat(t *testing.T) {
@@ -16,8 +16,7 @@ func TestChat(t *testing.T) {
 	config.Model = "deepseek-chat"
 	config.SystemFile = "../.system"
 	ctx := context.TODO()
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 
 	userPrompt, err := file.ReadFileToString("../.user")
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 )
 
 func TestChat(t *testing.T) {
@@ -14,8 +14,7 @@ func TestChat(t *testing.T) {
 	config.Model = "gemini-2.5-flash"
 	config.SystemFile = "../.system"
 	ctx := context.TODO()
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 
 	q := "who are you?"
 

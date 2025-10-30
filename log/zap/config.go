@@ -1,4 +1,4 @@
-package defaultlogger
+package zap
 
 type Config struct {
 	Development       bool
@@ -16,6 +16,6 @@ func DefaultConfig() *Config {
 		DisableCaller:     false,
 		DisableStacktrace: false,
 		Level:             "debug",
-		CallerSkip:        1,
+		CallerSkip:        0,
 	}
 }

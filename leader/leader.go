@@ -7,7 +7,7 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/builtin"
 	gchan "github.com/CrazyThursdayV50/pkgo/builtin/chan"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/CrazyThursdayV50/pkgo/worker"
 )
 
@@ -35,8 +35,7 @@ func New[J any](ctx context.Context, sendTimeout, recvTimeout time.Duration) *Le
 	leader.deliveryChan = gchan.Make[J](0)
 	leader.deliveryChan.SendTimeout(sendTimeout)
 	leader.deliveryChan.RecvTimeout(recvTimeout)
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 	leader.logger = logger
 	return &leader
 }

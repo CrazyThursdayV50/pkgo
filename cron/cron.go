@@ -7,7 +7,7 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/builtin/slice"
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/CrazyThursdayV50/pkgo/worker"
 )
 
@@ -29,8 +29,7 @@ type Cron struct {
 }
 
 func defaultOptions() []Option {
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 	return []Option{
 		WithJob(func() {}, time.Minute),
 		WithRunAfterStart(-1),

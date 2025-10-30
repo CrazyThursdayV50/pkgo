@@ -5,7 +5,8 @@ import (
 
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
+	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/sugar"
 )
 
 type Monitor struct {
@@ -20,8 +21,7 @@ type Monitor struct {
 func New(name string) *Monitor {
 	var s Monitor
 	s.ctx, s.cancel = context.WithCancel(context.TODO())
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := defaultlogger.New(sugar.DefaultConfig())
 	s.logger = logger
 	if name == "" {
 		name = "Monitor"

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/file"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"google.golang.org/genai"
 )
 
@@ -19,8 +19,7 @@ func TestChat(t *testing.T) {
 		IncludeThoughts: false,
 	})
 	ctx := context.TODO()
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 
 	q := "who are you?"
 
@@ -48,8 +47,7 @@ func TestChatStream(t *testing.T) {
 		IncludeThoughts: true,
 	})
 	ctx := context.TODO()
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 
 	q, _ := file.ReadFileToString("../question.json")
 	// q := "hello, who are you?"

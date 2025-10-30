@@ -10,7 +10,7 @@ import (
 
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/CrazyThursdayV50/pkgo/trace/jaeger"
 
 	client "github.com/CrazyThursdayV50/pkgo/websocket/client"
@@ -23,14 +23,12 @@ func TestWebsocket(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cfg := defaultlogger.DefaultConfig()
+	cfg := sugar.DefaultConfig()
 	cfg.Level = "info"
-	var logger = defaultlogger.New(cfg)
-	logger.Init()
+	var logger = sugar.New(cfg)
 
 	cfg.Level = "fatal"
-	var jaegerLogger = defaultlogger.New(cfg)
-	jaegerLogger.Init()
+	var jaegerLogger = sugar.New(cfg)
 
 	jaegerCfg := jaeger.DefaultConfig()
 	jaegerCfg.LogSpans = false

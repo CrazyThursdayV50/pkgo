@@ -6,7 +6,7 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/builtin"
 	gmap "github.com/CrazyThursdayV50/pkgo/builtin/map"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/CrazyThursdayV50/pkgo/trace"
 	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
 	"github.com/gorilla/websocket"
@@ -33,8 +33,7 @@ func New(opts ...Option) *Server {
 	var s Server
 	s.readBufferSize = defaultReadBufferSize
 	s.writeBufferSize = defaultWriteBufferSize
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
-	logger.Init()
+	logger := sugar.New(sugar.DefaultConfig())
 	s.logger = logger
 	s.conns = gmap.Make[int64, *conn](0)
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/CrazyThursdayV50/pkgo/goo"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/CrazyThursdayV50/pkgo/trace/jaeger"
 	"github.com/gorilla/websocket"
 )
@@ -14,14 +14,12 @@ import (
 func TestServer(t *testing.T) {
 	ctx := context.TODO()
 
-	cfg := defaultlogger.DefaultConfig()
+	cfg := sugar.DefaultConfig()
 	cfg.Level = "debug"
-	var logger = defaultlogger.New(cfg)
-	logger.Init()
+	var logger = sugar.New(cfg)
 
 	cfg.Level = "fatal"
-	var jaegerLogger = defaultlogger.New(cfg)
-	jaegerLogger.Init()
+	var jaegerLogger = sugar.New(cfg)
 
 	jaegerCfg := jaeger.DefaultConfig()
 	jaegerCfg.LogSpans = false

@@ -12,7 +12,6 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/reconnector/connection"
 	"github.com/CrazyThursdayV50/pkgo/reconnector/dialerfunc"
 	"github.com/CrazyThursdayV50/pkgo/websocket/compressor"
-	"go.uber.org/zap"
 
 	"github.com/gorilla/websocket"
 )
@@ -83,23 +82,18 @@ func (c *Client) send(typ int, data []byte) error {
 	conn := c.reconnector.Connection()
 	switch typ {
 	case websocket.CloseMessage:
-		c.l.Debugf("send CLOSE")
 		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.PingMessage:
-		c.l.Debugf("send PING")
 		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.PongMessage:
-		c.l.Debugf("send PONG")
 		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
 
 	case websocket.TextMessage:
-		c.l.Debugf("send: %v", zap.String("message", string(data)))
 		return conn.Conn().WriteMessage(typ, data)
 
 	default:
-		c.l.Debugf("send: %v", zap.ByteString("message", data))
 		return conn.Conn().WriteMessage(typ, data)
 	}
 }
@@ -122,7 +116,7 @@ func (c *Client) readOnConn(conn *websocket.Conn, handler MessageHandler) error 
 	}
 
 	typ, message := handler(c.ctx, c.l, typ, data, func(err error) {
-		c.l.Error("handle message failed", zap.Any("message", data), zap.Error(err))
+		c.l.Errorf("handle message failed. message: %v, error: %v", data, err)
 	})
 
 	switch typ {
@@ -227,11 +221,11 @@ func New(opts ...Option) *Client {
 				for {
 					select {
 					case <-c.done:
-						c.l.Warn("exit")
+						c.l.Warn("EXIT")
 						return
 
 					case <-ctx.Done():
-						c.l.Warn("exit")
+						c.l.Warn("EXIT")
 						return
 
 					default:

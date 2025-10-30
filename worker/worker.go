@@ -7,7 +7,7 @@ import (
 	gchan "github.com/CrazyThursdayV50/pkgo/builtin/chan"
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/CrazyThursdayV50/pkgo/monitor"
 )
 
@@ -61,9 +61,8 @@ func New[J any](name string, do func(job J)) (*Worker[J], func(J)) {
 	w.Monitor = monitor.New(w.name)
 	var trigger = gchan.Make[J](0)
 	w.trigger = trigger
-	logger := defaultlogger.New(defaultlogger.DefaultConfig())
+	logger := sugar.New(sugar.DefaultConfig())
 	w.logger = logger
-	logger.Init()
 	return &w, func(j J) {
 		trigger.Send(j)
 	}

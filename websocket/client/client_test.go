@@ -6,15 +6,14 @@ import (
 	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/log"
-	defaultlogger "github.com/CrazyThursdayV50/pkgo/log/default"
+	"github.com/CrazyThursdayV50/pkgo/log/sugar"
 	"github.com/gorilla/websocket"
 )
 
 func TestClient(t *testing.T) {
-	cfg := defaultlogger.DefaultConfig()
+	cfg := sugar.DefaultConfig()
 	cfg.Level = "debug"
-	var logger = defaultlogger.New(cfg)
-	logger.Init()
+	var logger = sugar.New(cfg)
 
 	ctx := context.TODO()
 
