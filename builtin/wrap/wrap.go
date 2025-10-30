@@ -20,3 +20,7 @@ func (w *unwrapper[T]) Unwrap() T {
 	}
 	return w.t
 }
+
+func (w *unwrapper[T]) IsNil() bool {
+	return w == nil
+}

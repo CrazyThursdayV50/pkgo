@@ -6,3 +6,7 @@ func (c *ChanR[E]) Unwrap() <-chan E {
 	}
 	return c.c
 }
+
+func (c *ChanR[E]) IsNil() bool {
+	return c == nil || c.c == nil
+}

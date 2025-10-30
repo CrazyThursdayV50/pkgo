@@ -18,6 +18,9 @@ type Client struct {
 	logger log.Logger
 }
 
+type RestyClient = resty.Client
+type RestyRequest = resty.Request
+
 func (c *Client) Request(ctx context.Context) *resty.Request {
 	return c.client.Clone().R().SetContext(ctx)
 }
@@ -33,7 +36,7 @@ func WithLogger(l log.Logger) Option {
 	}
 }
 
-func WithRequestMiddleware(f func(*resty.Client, *resty.Request) error) Option {
+func WithOnBeforeRequest(f func(*RestyClient, *RestyRequest) error) Option {
 	return func(c *Client) {
 		c.client.OnBeforeRequest(f)
 	}

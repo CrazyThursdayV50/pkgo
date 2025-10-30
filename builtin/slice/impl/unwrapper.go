@@ -6,3 +6,7 @@ func (s *Slice[E]) Unwrap() []E {
 	}
 	return s.slice
 }
+
+func (s *Slice[E]) IsNil() bool {
+	return s == nil || s.slice == nil
+}

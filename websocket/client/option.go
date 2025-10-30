@@ -43,11 +43,14 @@ func WithDefaultCompress(ok bool) Option {
 func WithPingHandler(timeout time.Duration, f func(string) error) Option {
 	return func(c *Client) {
 		c.pingHandler = func(appData string) error {
-			if f == nil {
-				return c.reconnector.Connection().Conn().WriteControl(PongMessage, []byte(appData), time.Now().Add(timeout))
+			if f != nil {
+				err := f(appData)
+				if err != nil {
+					return err
+				}
 			}
 
-			return f(appData)
+			return c.reconnector.Connection().Conn().WriteControl(PongMessage, []byte(appData), time.Now().Add(timeout))
 		}
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/CrazyThursdayV50/pkgo/trace"
 	"github.com/go-resty/resty/v2"
-	"go.uber.org/zap"
 )
 
 func TraceResponse(tracer trace.Tracer) func(*resty.Client, *resty.Response) error {
@@ -27,13 +26,13 @@ func TraceResponse(tracer trace.Tracer) func(*resty.Client, *resty.Response) err
 
 func LogAfterResponse(logger log.Logger) func(*resty.Client, *resty.Response) error {
 	return func(c *resty.Client, r *resty.Response) error {
-		logger.Info("incoming response",
-			zap.String("method", r.Request.Method),
-			zap.String("url", r.Request.URL),
-			zap.String("status", r.Status()),
-			zap.String("cost", r.Time().String()),
-			zap.Any("result", r.Result()),
-			zap.Any("error", r.Error()),
+		logger.Debugf("[incoming response]Cost(%s),Status(%s),Method(%s),URL(%s),Result(%+v),Error(%v)",
+			r.Time().String(),
+			r.Status(),
+			r.Request.Method,
+			r.Request.URL,
+			r.String(),
+			r.Error(),
 		)
 		return nil
 	}
@@ -41,14 +40,14 @@ func LogAfterResponse(logger log.Logger) func(*resty.Client, *resty.Response) er
 
 func LogOnError(logger log.Logger) func(*resty.Request, error) {
 	return func(r *resty.Request, err error) {
-		logger.Error("request failed",
-			zap.String("method", r.Method),
-			zap.String("url", r.URL),
-			zap.Any("header", r.Header),
-			zap.String("query", r.QueryParam.Encode()),
-			zap.Any("body", r.Body),
-			zap.Any("result", r.Result),
-			zap.Error(err),
+		logger.Errorf("[request failed]Method(%s),URL(%s),Header(%v),Query(%s),Body(%v),Result(%+v),Error(%v)",
+			r.Method,
+			r.URL,
+			r.Header,
+			r.QueryParam.Encode(),
+			r.Body,
+			r.Result,
+			err,
 		)
 	}
 }

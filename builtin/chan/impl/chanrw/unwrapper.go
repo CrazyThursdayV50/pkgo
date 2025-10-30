@@ -6,3 +6,7 @@ func (c *ChanRW[E]) Unwrap() chan E {
 	}
 	return c.c
 }
+
+func (c *ChanRW[E]) IsNil() bool {
+	return c == nil || c.c == nil
+}
