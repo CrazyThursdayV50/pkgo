@@ -35,17 +35,16 @@ func New(cfg *Config) *zap.Logger {
 	var encoder zapcore.Encoder
 
 	switch {
-	case cfg.Development, cfg.Console:
+	case cfg.Development && cfg.Console:
 		encoderCfg = zap.NewDevelopmentEncoderConfig()
 		encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		encoder = zapcore.NewConsoleEncoder(encoderCfg)
 
-	case cfg.Development, !cfg.Console:
+	case cfg.Development && !cfg.Console:
 		encoderCfg = zap.NewDevelopmentEncoderConfig()
-		encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		encoder = zapcore.NewJSONEncoder(encoderCfg)
 
-	case !cfg.Development, cfg.Console:
+	case !cfg.Development && cfg.Console:
 		encoderCfg = zap.NewProductionEncoderConfig()
 		encoderCfg.EncodeLevel = zapcore.LowercaseColorLevelEncoder
 		encoderCfg.EncodeTime = zapcore.TimeEncoderOfLayout(time.StampMilli)

@@ -1,9 +1,6 @@
 package sugar
 
 import (
-	"errors"
-	"syscall"
-
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/CrazyThursdayV50/pkgo/log/zap"
 )
@@ -17,9 +14,9 @@ type apiLogger struct {
 func New(cfg *Config) *apiLogger {
 	sugar := zap.New(cfg).Sugar()
 
-	if err := sugar.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
-		sugar.Warnf("sugarLogger sync failed: %v", err)
-	}
+	// if err := sugar.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
+	// 	sugar.Warnf("sugarLogger sync failed: %v", err)
+	// }
 
 	return &apiLogger{sugar: sugar}
 }
