@@ -26,12 +26,12 @@ func TraceResponse(tracer trace.Tracer) func(*resty.Client, *resty.Response) err
 
 func LogAfterResponse(logger log.Logger) func(*resty.Client, *resty.Response) error {
 	return func(c *resty.Client, r *resty.Response) error {
-		logger.Infof("[incoming response]Cost(%s),Status(%s),Method(%s),URL(%s),Result(%v),Error(%v)",
+		logger.Infof("[incoming response]Cost(%s),Status(%s),Method(%s),URL(%s),Result(%+v),Error(%v)",
 			r.Time().String(),
 			r.Status(),
 			r.Request.Method,
 			r.Request.URL,
-			r.Result(),
+			r.String(),
 			r.Error(),
 		)
 		return nil
@@ -40,7 +40,7 @@ func LogAfterResponse(logger log.Logger) func(*resty.Client, *resty.Response) er
 
 func LogOnError(logger log.Logger) func(*resty.Request, error) {
 	return func(r *resty.Request, err error) {
-		logger.Error("[request failed]Method(%s),URL(%s),Header(%v),Query(%s),Body(%v),Result(%v),Error(%v)",
+		logger.Error("[request failed]Method(%s),URL(%s),Header(%v),Query(%s),Body(%v),Result(%+v),Error(%v)",
 			r.Method,
 			r.URL,
 			r.Header,
