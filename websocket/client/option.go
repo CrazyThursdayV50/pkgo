@@ -70,3 +70,23 @@ func WithPongHandler(timeout time.Duration, f func(string) error) Option {
 func WithReconnectOnStartup(reconnectOnStartup bool) Option {
 	return func(c *Client) { c.reconnectOnStartup = reconnectOnStartup }
 }
+
+func WithDoNotReconnect() Option {
+	return func(c *Client) {
+		c.doNotReconnect = true
+	}
+}
+
+func WithReadTimeout(duration time.Duration) Option {
+	return func(c *Client) { c.readTimeout = duration }
+}
+
+func WithWriteTimeout(duration time.Duration) Option {
+	return func(c *Client) { c.writeTimeout = duration }
+}
+
+func WithOnConnect(onConnect func() (int, []byte)) Option {
+	return func(c *Client) {
+		c.onConnect = append(c.onConnect, onConnect)
+	}
+}

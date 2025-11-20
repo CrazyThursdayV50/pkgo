@@ -14,9 +14,16 @@ import (
 func TestChat(t *testing.T) {
 	var config Config
 	config.Model = "deepseek-chat"
-	config.SystemFile = "../.system"
+	systemFile := "../.system"
 	ctx := context.TODO()
 	logger := sugar.New(sugar.DefaultConfig())
+
+	systemPrompt, err := file.ReadFileToString(systemFile)
+	if err != nil {
+		t.Fatalf("read system prompt failed: %v", err)
+		return
+	}
+	config.SystemContent = systemPrompt
 
 	userPrompt, err := file.ReadFileToString("../.user")
 	if err != nil {

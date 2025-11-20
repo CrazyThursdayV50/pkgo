@@ -13,15 +13,15 @@ type Config struct {
 	MaxTokens           int
 	MaxCompletionTokens int
 	Temperature         float32
-	SystemFile          string
+	SystemContent       string
 }
 
 func DefaultConfig() *Config {
 	return &Config{
-		Model:       openai.GPT4Turbo,
-		Token:       os.Getenv("OPENAI_API_KEY"),
-		MaxTokens:   4000,
-		Temperature: 0.5,
-		SystemFile:  "",
+		Model:         openai.GPT4Turbo,
+		Token:         os.Getenv("OPENAI_API_KEY"),
+		MaxTokens:     4000,
+		Temperature:   0.5,
+		SystemContent: "",
 	}
 }

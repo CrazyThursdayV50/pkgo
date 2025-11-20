@@ -24,21 +24,24 @@ type (
 		ctx    context.Context
 		cancel context.CancelFunc
 
-		url         string
-		l           log.Logger
-		done        chan struct{}
-		pingLoop    func(<-chan struct{}, *websocket.Conn)
-		handler     MessageHandler
-		pingHandler func(string) error
-		pongHandler func(string) error
-		onConnect   []func() (int, []byte)
-		proxy       string
+		url          string
+		l            log.Logger
+		done         chan struct{}
+		pingLoop     func(<-chan struct{}, *websocket.Conn)
+		handler      MessageHandler
+		pingHandler  func(string) error
+		pongHandler  func(string) error
+		onConnect    []func() (int, []byte)
+		proxy        string
+		readTimeout  time.Duration
+		writeTimeout time.Duration
 
 		c              compressor.Compressor
 		enableCompress bool
 
 		reconnector        *wsreconnector
 		reconnectOnStartup bool
+		doNotReconnect     bool
 	}
 
 	PingLoop func(done <-chan struct{}, conn *websocket.Conn)
@@ -80,6 +83,10 @@ func (c *Client) Pong(data []byte) error {
 
 func (c *Client) send(typ int, data []byte) error {
 	conn := c.reconnector.Connection()
+	if c.writeTimeout != 0 {
+		conn.Conn().SetWriteDeadline(time.Now().Add(c.writeTimeout))
+	}
+
 	switch typ {
 	case websocket.CloseMessage:
 		return conn.Conn().WriteControl(typ, data, time.Now().Add(time.Minute))
@@ -101,6 +108,10 @@ func (c *Client) send(typ int, data []byte) error {
 func (c *Client) readOnConn(conn *websocket.Conn, handler MessageHandler) error {
 	if conn == nil {
 		return nil
+	}
+
+	if c.readTimeout != 0 {
+		conn.SetReadDeadline(time.Now().Add(c.readTimeout))
 	}
 
 	typ, data, err := conn.ReadMessage()
@@ -143,53 +154,7 @@ func (c *Client) readOnConn(conn *websocket.Conn, handler MessageHandler) error 
 }
 
 func (c *Client) Run(ctx context.Context) error {
-	c.ctx, c.cancel = context.WithCancel(ctx)
-	err := c.reconnector.Run(c.ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Client) Stop() {
-	c.cancel()
-}
-
-func New(opts ...Option) *Client {
-	var c Client
-	c.done = make(chan struct{})
-
-	for _, opt := range opts {
-		opt(&c)
-	}
-
-	dialer := websocket.DefaultDialer
-	dialer.EnableCompression = c.enableCompress
-	switch c.proxy {
-	case "":
-	case "env":
-		dialer.Proxy = http.ProxyFromEnvironment
-	default:
-		url, err := url.Parse(c.proxy)
-		if err == nil {
-			dialer.Proxy = http.ProxyURL(url)
-		}
-	}
-
-	dialerFunc := dialerfunc.CloserDialerContext[*websocket.Conn](func(ctx context.Context) (*websocket.Conn, error) {
-		conn, _, err := dialer.DialContext(ctx, c.url, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		return conn, nil
-	})
-
-	c.reconnector = reconnector.New(dialerFunc.Wrap()).WithLogger(c.l)
-	c.reconnector.ReconnectInterval(time.Second)
 	c.reconnector.ReconnectOnStartup(c.reconnectOnStartup)
-	c.listenClose()
 	c.reconnector.SetOnConnect(func(ctx context.Context, conn *connection.WrappedChecker[*websocket.Conn]) {
 		if conn != nil {
 			conn.Conn().SetPingHandler(c.pingHandler)
@@ -198,8 +163,7 @@ func New(opts ...Option) *Client {
 				go c.pingLoop(c.ctx.Done(), conn.Conn())
 			}
 
-			c.l.Debugf("connect success")
-
+			c.l.Debugf("connect success to %s", c.url)
 			for _, f := range c.onConnect {
 				typ, data := f()
 				if data != nil {
@@ -240,6 +204,58 @@ func New(opts ...Option) *Client {
 			}()
 		}
 	})
+
+	c.ctx, c.cancel = context.WithCancel(ctx)
+	err := c.reconnector.Run(c.ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) Stop() {
+	c.cancel()
+}
+
+func New(opts ...Option) *Client {
+	var c Client
+	c.done = make(chan struct{})
+
+	for _, opt := range opts {
+		opt(&c)
+	}
+
+	dialer := websocket.DefaultDialer
+	dialer.EnableCompression = c.enableCompress
+	switch c.proxy {
+	case "":
+	case "env":
+		dialer.Proxy = http.ProxyFromEnvironment
+	default:
+		url, err := url.Parse(c.proxy)
+		if err == nil {
+			dialer.Proxy = http.ProxyURL(url)
+		}
+	}
+
+	dialerFunc := dialerfunc.CloserDialerContext[*websocket.Conn](func(ctx context.Context) (*websocket.Conn, error) {
+		c.l.Debugf("connect to %s ...", c.url)
+		conn, _, err := dialer.DialContext(ctx, c.url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return conn, nil
+	})
+
+	c.reconnector = reconnector.New(dialerFunc.Wrap()).WithLogger(c.l)
+	if c.doNotReconnect {
+		c.reconnector.DoNotReconnect()
+	}
+
+	c.reconnector.ReconnectInterval(time.Second)
+	c.listenClose()
 
 	return &c
 }

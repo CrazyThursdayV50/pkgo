@@ -7,17 +7,17 @@ import (
 )
 
 type Config struct {
-	Model       string
-	Token       string
-	Temperature float32
-	SystemFile  string
+	Model         string
+	Token         string
+	Temperature   float32
+	SystemContent string
 }
 
 func DefaultConfig() *Config {
 	return &Config{
-		Model:       openai.GPT4Turbo,
-		Token:       os.Getenv("OPENAI_API_KEY"),
-		Temperature: 0.5,
-		SystemFile:  "",
+		Model:         openai.GPT4Turbo,
+		Token:         os.Getenv("OPENAI_API_KEY"),
+		Temperature:   0.5,
+		SystemContent: "",
 	}
 }

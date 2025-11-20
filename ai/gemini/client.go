@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/CrazyThursdayV50/pkgo/ai"
-	"github.com/CrazyThursdayV50/pkgo/file"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"google.golang.org/genai"
 )
@@ -25,14 +24,7 @@ func New(ctx context.Context, logger log.Logger, cfg *Config) (*Client, error) {
 
 	var c Client
 	c.cfg = cfg
-
-	if cfg.SystemFile != "" {
-		systemContent, err := file.ReadFileToString(cfg.SystemFile)
-		if err != nil {
-			return nil, err
-		}
-		c.systemContent = systemContent
-	}
+	c.systemContent = cfg.SystemContent
 
 	client, err := genai.NewClient(ctx, nil)
 	if err != nil {

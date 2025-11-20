@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/CrazyThursdayV50/pkgo/ai"
-	"github.com/CrazyThursdayV50/pkgo/file"
 	"github.com/CrazyThursdayV50/pkgo/log"
 	"github.com/sashabaranov/go-openai"
 )
@@ -27,15 +26,7 @@ func New(cfg *Config, logger log.Logger) (*Client, error) {
 
 	c := openai.NewClient(cfg.Token)
 
-	client := Client{cfg: cfg, client: c}
-	if cfg.SystemFile != "" {
-		systemContent, err := file.ReadFileToString(cfg.SystemFile)
-		if err != nil {
-			return nil, err
-		}
-		client.systemContent = systemContent
-	}
-
+	client := Client{cfg: cfg, client: c, systemContent: cfg.SystemContent}
 	return &client, nil
 }
 

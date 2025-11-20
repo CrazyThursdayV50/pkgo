@@ -14,12 +14,19 @@ import (
 func TestChat(t *testing.T) {
 	var config Config
 	config.Model = "gemini-2.5-flash"
-	config.SystemFile = "../.system"
+	systemFile := "../.system"
 	config.SetThinkingConfig(&genai.ThinkingConfig{
 		IncludeThoughts: false,
 	})
 	ctx := context.TODO()
 	logger := sugar.New(sugar.DefaultConfig())
+
+	systemPrompt, err := file.ReadFileToString(systemFile)
+	if err != nil {
+		t.Fatalf("read system prompt failed: %v", err)
+		return
+	}
+	config.SystemContent = systemPrompt
 
 	q := "who are you?"
 
@@ -42,12 +49,18 @@ func TestChat(t *testing.T) {
 func TestChatStream(t *testing.T) {
 	var config Config
 	config.Model = "gemini-2.5-pro"
-	config.SystemFile = "../.system"
+	systemFile := "../.system"
 	config.SetThinkingConfig(&genai.ThinkingConfig{
 		IncludeThoughts: true,
 	})
 	ctx := context.TODO()
 	logger := sugar.New(sugar.DefaultConfig())
+	systemPrompt, err := file.ReadFileToString(systemFile)
+	if err != nil {
+		t.Fatalf("read system prompt failed: %v", err)
+		return
+	}
+	config.SystemContent = systemPrompt
 
 	q, _ := file.ReadFileToString("../question.json")
 	// q := "hello, who are you?"

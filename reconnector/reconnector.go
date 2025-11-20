@@ -21,10 +21,17 @@ type Reconnector[Conn connection.Checker] struct {
 	newConn             ConnectorFunc[Conn]
 	conn                Conn
 	onConnect           func(context.Context, Conn)
+
+	doNotReconnect bool
 }
 
 func (r *Reconnector[Conn]) WithLogger(logger log.Logger) *Reconnector[Conn] {
 	r.logger = logger
+	return r
+}
+
+func (r *Reconnector[Conn]) DoNotReconnect() *Reconnector[Conn] {
+	r.doNotReconnect = true
 	return r
 }
 
@@ -67,7 +74,22 @@ func (r *Reconnector[Conn]) connect() error {
 }
 
 func (r *Reconnector[Conn]) Run(ctx context.Context) error {
+	// 解偶第一次连接和成功连接后的重连逻辑
 	r.ctx, r.cancel = context.WithCancel(ctx)
+	// 首次连接
+	err := r.connect()
+	for r.reconnectOnStartup && err != nil {
+		time.Sleep(time.Second * 2)
+		err = r.connect()
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if r.doNotReconnect {
+		return nil
+	}
 
 	go func() {
 		for {
@@ -105,17 +127,6 @@ func (r *Reconnector[Conn]) Run(ctx context.Context) error {
 		}
 	}()
 
-	switch r.reconnectOnStartup {
-	case false:
-		err := r.connect()
-		if err != nil {
-			return err
-		}
-
-	default:
-		r.sendReconnectSignal()
-	}
-
 	return nil
 }
 
@@ -136,5 +147,9 @@ func (r *Reconnector[Conn]) ReconnectInterval(interval time.Duration) {
 }
 
 func (r *Reconnector[Conn]) Reconnect() {
+	if r.doNotReconnect {
+		return
+	}
+
 	r.sendReconnectSignal()
 }
