@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"sync/atomic"
+	"time"
 
 	"github.com/CrazyThursdayV50/pkgo/goo"
 	"github.com/gorilla/websocket"
@@ -111,6 +112,16 @@ func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
+	conn.SetPingHandler(func(appData string) error {
+		s.logger.Debugf("Recv PING, Send PONG: %s", appData)
+		return conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().Add(time.Minute))
+	})
+
+	conn.SetPongHandler(func(appData string) error {
+		s.logger.Debugf("Recv PONG: %s", appData)
+		return nil
+	})
+
 	ctx, cancel := context.WithCancel(ctx)
 	c := s.newConn(conn, cancel)
 	s.conns.AddSoft(c.id, c)
@@ -137,4 +148,16 @@ func (s *Server) Run(ctx context.Context, w http.ResponseWriter, r *http.Request
 	})
 
 	return nil
+}
+
+func (s *Server) Stop() {
+	ctx, cancel := context.WithDeadline(context.TODO(), time.Now().Add(time.Second*3))
+	defer cancel()
+
+	s.Broadcast(ctx, websocket.CloseMessage, nil)
+
+	s.conns.Iter(func(k int64, v *conn) (bool, error) {
+		v.cancel()
+		return true, nil
+	})
 }
